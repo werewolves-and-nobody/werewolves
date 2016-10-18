@@ -164,9 +164,6 @@ ul {
   /* Use this for centering if unknown width/height */
   transform: translate(-50%, -50%);
 }
-.modal .closed {
-  display: none;
-}
 
 .modal-overlay {
   position: fixed;
