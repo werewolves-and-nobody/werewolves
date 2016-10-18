@@ -22,9 +22,6 @@
     <div class="box-head">They dead!</div>
     <div class="body-body">
       <ul>
-        <li>bla</li>
-        <li>bla</li>
-        <li>bla</li>
       </ul>
     </div>
   </div>
@@ -43,10 +40,10 @@
           <input type="text" name="name" id="name" value="p1"/>
           <button type="submit" id="join">Join game</button>
         </form>
+        <input type="text" style="display:none" name="action" id="action"/>
 
         <pre id="events"></pre>
 
-        <input type="text" style="display:none" name="action" id="action"/>
       </div>
     </div>
   </div>
@@ -71,7 +68,7 @@
      <div class="players-box box-style">
         <div class="box-head">Players</div>
         <div class="box-body">
-          bla
+          <ul></ul>
      </div>
   </div>
 </div>
@@ -101,11 +98,30 @@ $("#action").on('keyup', function(e) {
 
 var pre = $("#events");
 socket.on("game event", function(msg) {
+
+  // Did someone die
+  if(msg.type === 'killed') {
+    msg.killed.forEach(function(k) {
+      $('<li></li>').text(k).appendTo('.list-of-deaths ul');
+    })
+  }
+
+ // Did you die
+  if(msg.type === 'death') {
+    $('.death-notice .reason').text(msg.msg)
+    $('.death-notice').show()
+  }
+
   // update role information
   if(msg.type === "start" && msg.role !== undefined) {
     $('div.role-box #role').text(msg.role);
     $('span#night').hide();
-      $('span#day').hide();
+    $('span#day').hide();
+
+    // Show all the players names.
+    msg.players.forEach(function(p) {
+      $('<li></li>').text(p).appendTo('.players-box ul')
+    })
   }
 
   // update time
@@ -117,14 +133,13 @@ socket.on("game event", function(msg) {
       $('span#night').hide();
       $('span#day').show();
     }
-
   }
 
   pre.append("\n\n" + JSON.stringify(msg, null, 2));
 
   if(msg.type === "rfa") {
     currentActionId = msg.identifier;
-    $('#action').show();
+    $('#action').val("").show();
   }
 });
 </script>

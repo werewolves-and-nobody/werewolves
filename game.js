@@ -18,7 +18,6 @@ Game.prototype.actions = [
   "dawnOfDeathAction",
   "voteAction",
   "killVictimsAction",
-  "setNightAction",
 ];
 
 Game.prototype.addPlayer = function addPLayer(player) {
@@ -40,6 +39,7 @@ Game.prototype.canStartGame = function canStartGame() {
 
 Game.prototype.startGame = function startGame() {
   // Everyone starts as a nobody
+  this.everyone = this.players.slice();
   this.players.forEach(function(p) {
     p.role = ROLE_NOBODY;
   });
@@ -52,7 +52,7 @@ Game.prototype.startGame = function startGame() {
   helpers.shuffle(this.players);
 
   this.players[0].role = ROLE_WEREWOLVES;
-  this.players.forEach(function(player) {
+  this.everyone.forEach(function(player) {
     player.socket.emit("game event", {
       type: "start",
       role: player.role,
@@ -147,6 +147,7 @@ Game.prototype.werewolvesAction = function werewolvesAction() {
       var victim = self.getPlayerByName(msgs[0]);
       if(!allEqual || !victim) {
         notifyWerewolves("Please ensure you all eat the same person. Thanks. Persons voted: " + msgs.join(", "));
+        return;
       }
 
       victim.causeOfDeath = "Eaten by werewolves.";
@@ -194,28 +195,37 @@ Game.prototype.dawnOfDeathAction = function dawnOfDeathAction() {
       msg: "You survived. GJ. Players killed during the night: " + victimsFormatted
     });
   });
+  this.everyone.forEach(function(p) {
+    p.socket.emit("game event", {
+      type: "killed",
+      killed: victimsFormatted,
+    });
+  });
 
   this.doNextAction();
 };
 
 Game.prototype.setNightAction = function setNightAction() {
-  this.players.forEach(function(p) {
+  this.everyone.forEach(function(p) {
     p.socket.emit("game event", {
       type: "timechange",
       time: "night"
-    })
+    });
   });
-  doNextAction();
-}
+
+  this.doNextAction();
+};
+
 Game.prototype.setDayAction = function setDayAction() {
-  this.players.forEach(function(p) {
+  this.everyone.forEach(function(p) {
     p.socket.emit("game event", {
       type: "timechange",
       time: "day"
-    })
-  })
-  doNextAction();
-}
+    });
+  });
+
+  this.doNextAction();
+};
 
 Game.prototype.voteAction = function voteAction() {
   var self = this;
@@ -273,6 +283,12 @@ Game.prototype.voteAction = function voteAction() {
         p.socket.emit("game event", {
           type: "vote",
           msg: "End of vote, village picked " + victim.name + "."
+        });
+      });
+      this.everyone.forEach(function(p) {
+        p.socket.emit("game event", {
+          type: "killed",
+          killed: victimsFormatted,
         });
       });
 
