@@ -3,7 +3,6 @@
 <link rel="stylesheet" type="text/css" href="style.css" />
 <BODY>
 
-
 <!-- Model code -->
 <div class="modal-overlay" id="modal-overlay"></div>
 <div class="modal" id="modal">
@@ -11,7 +10,6 @@
   <div class="modal-guts">
     <h1>Awesome Action!</h1>
     <p>How now brown cow?</p>
-    
   </div>
 </div>
 <!-- End modal code -->
@@ -41,7 +39,7 @@
           <button type="submit" id="join">Join game</button>
         </form>
         <input type="text" style="display:none" name="action" id="action"/>
-
+        <button id="open-button" class="open-button">Open Modal</button> 
         <pre id="events"></pre>
 
       </div>
@@ -75,6 +73,7 @@
 
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="modal.js"></script>
 <script>
 "use strict";
 /* global io, $ */
