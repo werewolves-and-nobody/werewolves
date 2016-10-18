@@ -137,7 +137,7 @@ socket.on("game event", function(msg) {
     }
   }
 
-  pre.append("\n\n" + JSON.stringify(msg, null, 2));
+  pre.prepend(JSON.stringify(msg, null, 2) + "\n\n" );
 
   if(msg.type === "rfa") {
     currentActionId = msg.identifier;
