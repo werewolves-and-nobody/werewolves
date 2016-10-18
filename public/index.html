@@ -8,8 +8,11 @@
 <div class="modal closed" id="modal">
   <button class="close-button" id="close-button">X</button>
   <div class="modal-guts">
-    <h1>Awesome Action!</h1>
-    <p>How now brown cow?</p>
+    <h1 id="action-title">Awesome Action!</h1>
+    <p id="action-text">
+      How now brown cow?
+      <input type="text" name="action" id="action"/>
+    </p>
   </div>
 </div>
 <!-- End modal code -->
@@ -38,7 +41,6 @@
           <input type="text" name="name" id="name" value="p1"/>
           <button type="submit" id="join">Join game</button>
         </form>
-        <input type="text" style="display:none" name="action" id="action"/>
         <button id="open-button" class="open-button">Open Modal</button> 
         <pre id="events"></pre>
 
