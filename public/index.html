@@ -1,41 +1,6 @@
 <HTML>
 <HEAD><TITLE>Awesome Game by Matt²</TITLE>
 <link rel="stylesheet" type="text/css" href="style.css" />
-<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-<script>
-"use strict";
-/* global io, $ */
-
-var currentActionId;
-
-var socket = io();
-
-$("#join").click(function() {
-  socket.emit('join', $('#name').val());
-  $('#matchmaker').hide();
-});
-
-$("#action").on('keyup', function(e) {
-  if(e.keyCode === 13) {
-    $('#action').hide();
-    socket.emit(currentActionId, this.value);
-  }
-});
-
-
-var pre = $("#events");
-socket.on("game event", function(msg) {
-  pre.append("\n\n" + JSON.stringify(msg, null, 2));
-
-  if(msg.type === "rfa") {
-    currentActionId = msg.identifier;
-    $('#action').show();
-  }
-});
-</script>
-
-
 <BODY>
 <!-- Main left box -->
 <div class="left-main-box">
@@ -51,7 +16,7 @@ socket.on("game event", function(msg) {
   </div>
 
   <div class="bottom-box">
-    <div class="bottom-container"> 
+    <div class="bottom-container">
       <div class="face-box">
       <pre>
         o
@@ -62,7 +27,7 @@ socket.on("game event", function(msg) {
       <div class="chat-box">
         <form id="matchmaker">
           <input type="text" name="name" id="name" value="p1"/>
-          <input type="button" id="join" value="Join game" />
+          <button type="submit" id="join">Join game</button>
         </form>
 
         <pre id="events"></pre>
@@ -77,19 +42,68 @@ socket.on("game event", function(msg) {
 <!-- Main right box -->
 <div class="right-main-box">
   <div class="day-night">
-    <img src="img/moon.png">
-    <img src="img/sun.png">
+    <span id='night'><img src="img/moon.png"></span>
+    <span id='day'><img src="img/sun.png"></span>
   </div>
 
   <div class="role-box">
     <div class="box-head">Role</div>
     <div class="box-body">
-      bla
+      Your role is <span id="role">Unassigned</span>.
     </div>
   </div>
 </div>
 
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script>
+"use strict";
+/* global io, $ */
 
+var currentActionId;
+
+var socket = io();
+
+$("form#matchmaker").submit(function(e) {
+  socket.emit('join', $('#name').val());
+  $('#matchmaker').hide();
+  e.preventDefault();
+});
+
+$("#action").on('keyup', function(e) {
+  if(e.keyCode === 13) {
+    $('#action').hide();
+    socket.emit(currentActionId, this.value);
+  }
+});
+
+var pre = $("#events");
+socket.on("game event", function(msg) {
+  // update role information
+  if(msg.type === "start" && msg.role !== undefined) {
+    $('div.role-box #role').text(msg.role);
+  }
+
+  // update time
+  if(msg.type === 'timechange') {
+    if(msg.time === 'night') {
+      $('span#night').show();
+      $('span#day').hide();
+    } else {
+      $('span#night').hide();
+      $('span#day').show();
+    }
+
+  }
+
+  pre.append("\n\n" + JSON.stringify(msg, null, 2));
+
+  if(msg.type === "rfa") {
+    currentActionId = msg.identifier;
+    $('#action').show();
+  }
+});
+</script>
 
 </BODY>
 </HTML>

@@ -13,9 +13,11 @@ var Game = function Game() {
 
 Game.prototype.actions = [
   "werewolvesAction",
+  "setDayAction",
   "dawnOfDeathAction",
   "voteAction",
   "killVictimsAction",
+  "setNightAction",
 ];
 
 Game.prototype.addPlayer = function addPLayer(player) {
@@ -194,6 +196,23 @@ Game.prototype.dawnOfDeathAction = function dawnOfDeathAction() {
 
   this.doNextAction();
 };
+
+Game.prototype.setNightAction = function setNightAction() {
+  this.players.forEach(function(p) {
+    p.socket.emit("game event", {
+      type: "timechange",
+      time: "night"
+    })
+  })
+}
+Game.prototype.setDayAction = function setDayAction() {
+  this.players.forEach(function(p) {
+    p.socket.emit("game event", {
+      type: "timechange",
+      time: "day"
+    })
+  })
+}
 
 Game.prototype.voteAction = function voteAction() {
   var self = this;
