@@ -6,16 +6,26 @@ var Game = require('../game.js');
 
 var genTestSockets = function genTestSockets(emitter, receiver) {
   var socket = {
-    emit: function() {
-      if(emitter) {
-        emitter.apply(this, arguments);
+    emit: function(type, msg) {
+      if(socket.stubEmitter) {
+        socket.stubEmitter.apply(this, arguments);
       }
+
+      socket.emits.unshift(msg);
     },
-    on: function() {
-      if(receiver) {
-        receiver.apply(this, arguments);
+    on: function(type, cb) {
+      if(socket.stubReceiver) {
+        socket.stubReceiver.apply(this, arguments);
       }
+
+      // Assuming only one listener per type
+      socket.ons[type] = cb;
     },
+    // Emits history, in reverse order (first is the most recent)
+    emits: [],
+    ons: {},
+    stubEmitter: emitter,
+    stubReceiver: receiver
   };
 
   socket.once = socket.on;
@@ -72,6 +82,14 @@ describe("new Game()", function() {
     var werewolf = null;
 
     var game = new Game(3);
+    // Stub the automatic flow.
+    game.realDoNextAction = game.doNextAction;
+    game.doNextAction = function() {};
+    game.advanceUntilAction = function(actionName) {
+      while(game.realDoNextAction() !== actionName) {
+        // Do nothing.
+      };
+    };
 
     game.addPlayer(p1);
     game.addPlayer(p2);
@@ -80,7 +98,7 @@ describe("new Game()", function() {
     assert.ok(game.canStartGame());
     it("should have one werewolf", function(done) {
       async.each([p1, p2, p3], function(p, cb) {
-        p.socket.emit = function(type, msg) {
+        p.socket.stubEmitter = function(type, msg) {
           if(msg.type === "start") {
             if(msg.role === "werewolf") {
               werewolf = p;
@@ -98,5 +116,34 @@ describe("new Game()", function() {
 
       game.startGame();
     });
+
+    it("should ask the werewolf to vote for someone", function(done) {
+      game.advanceUntilAction("werewolvesAction");
+
+      assert.equal(werewolf.socket.emits[0].type, "rfa");
+      assert.equal((werewolf === p1 ? p2 : p1).socket.emits[0].type, "start");
+      done();
+    });
+
+    it("should ensure the werewolf vote for an existing player", function(done) {
+      werewolf.socket.ons[game.getCurrentIdentifier()]("doesnotexist");
+
+      // Should have been acknowledged, and asked again
+      assert.equal(werewolf.socket.emits[0].type, "rfa");
+      assert.equal(werewolf.socket.emits[1].type, "ack");
+      assert.equal(werewolf.socket.emits[2].type, "rfa");
+      done();
+    });
+
+
+    it("should register vote on existing player", function(done) {
+      werewolf.socket.ons[game.getCurrentIdentifier()](werewolf === p1 ? p2.name : p1.name);
+
+      assert.equal(werewolf.socket.emits[0].type, "ack");
+      assert.equal(werewolf.socket.emits[1].type, "rfa");
+      done();
+    });
+
+    it("should then move on to vote");
   });
 });

@@ -34,9 +34,9 @@ Game.prototype.canStartGame = function canStartGame() {
   };
 
 Game.prototype.startGame = function startGame() {
-    this.currentAction = -1;
-    this.currentDay = 0;
-    this.victims = [];
+  this.currentAction = -1;
+  this.currentDay = 0;
+  this.victims = [];
 
   // Everyone starts as a nobody
   this.players.forEach(function(p) {
@@ -108,8 +108,10 @@ Game.prototype.doNextAction = function doNextAction(err) {
   }
 
   var nextAction = this.actions[this.currentAction];
-  debug("Doing action #" + this.currentAction);
+  debug("Doing action #" + this.currentAction + ": " + nextAction);
   this[nextAction]();
+
+  return nextAction;
 };
 
 
@@ -144,8 +146,11 @@ Game.prototype.werewolvesAction = function werewolvesAction() {
       });
 
       var victim = self.getPlayerByName(msgs[0]);
+
       if(!allEqual || !victim) {
+        debug("Quorum failed. Trying again.");
         notifyWerewolves("Please ensure you all eat the same person. Thanks. Persons voted: " + msgs.join(", "));
+        return;
       }
 
       victim.causeOfDeath = "Eaten by werewolves.";
