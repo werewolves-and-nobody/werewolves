@@ -52,7 +52,7 @@ Game.prototype.startGame = function startGame() {
   helpers.shuffle(this.players);
 
   this.players[0].role = ROLE_WEREWOLVES;
-  this.players.forEach(function(player) {
+  this.everyone.forEach(function(player) {
     player.socket.emit("game event", {
       type: "start",
       role: player.role,
