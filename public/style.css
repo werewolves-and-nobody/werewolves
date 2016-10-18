@@ -37,7 +37,7 @@ body {
     display: block;
     float: left;
     min-width: 250px;
-    padding: 4px;
+    padding: 10px;
     margin-top: 30px;
     margin-left: 50px;
     /* border: dashed 1px gray; */
@@ -84,39 +84,41 @@ body {
 .face-box {
     float: left;
     width: 260px;
-    height: 90%;
+    height: 86%;
     margin-left: 50px;
-    padding-bottom: 5px;
-    padding-top: 5px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    padding-right: 10px;
 }
 
 .chat-box {
     float: left;
     position: absolute;
-    height: 90%;
+    height: 86%;
     width: 65%; 
     border-left: none;
     margin-left: 15px;
-    padding: 5px;
-    padding-left: 10px;
+    padding: 10px;
 }
 
 .day-night {
     display: block;
     width: 200px;
     margin-left: auto;
-    margin-right: 65px;
-    padding: 4px;
+    margin-right: 50px;
+    padding: 10px;
     margin-top: 30px;
+    max-width: 100%;
 }
 
 .role-box {
     display: block;
     margin-right: auto;
     width: 250px;
-    padding: 4px;
+    max-width: 100%;
+    padding: 10px;
     margin-top: 40px;
-    height: 30%;
+    height: 150px;
 }
 
 .players-box {
@@ -124,8 +126,9 @@ body {
     position: absolute;
     bottom: 0;
     width: 250px;
-    padding: 4px;
+    max-width: 100%;
+    padding: 10px;
     margin-top: 50px;
     margin-bottom: 20px;
-    height: 40%;
+    height: 45%;
 }
