@@ -1,0 +1,150 @@
+<HTML>
+<HEAD><TITLE>Awesome Game by Matt²</TITLE>
+<link rel="stylesheet" type="text/css" href="style.css" />
+<BODY>
+<div class='death-notice'></div>
+
+<!-- Model code -->
+<div class="modal closed" id="modal">
+<div class="modal-overlay closed" id="modal-overlay"></div>
+  <button class="close-button" id="close-button">X</button>
+  <div class="modal-guts">
+    <h1 id="action-title">Awesome Action!</h1>
+    <p id="action-text">
+      How now brown cow?
+      <input type="text" name="action" id="action"/>
+    </p>
+  </div>
+</div>
+<!-- End modal code -->
+
+<!-- Main left box -->
+<div class="left-main-box">
+  <div class="list-of-deaths box-style">
+    <div class="box-head">They dead!</div>
+    <div class="body-body">
+      <ul>
+      </ul>
+    </div>
+  </div>
+
+  <div class="bottom-box">
+    <div class="bottom-container">
+      <div class="face-box box-style">
+      <pre>
+        o
+       \|/
+        /\
+      </pre>
+      </div>
+      <div class="chat-box box-style">
+        <form id="matchmaker">
+          <input type="text" name="name" id="name" value="p1"/>
+          <button type="submit" id="join">Join game</button>
+        </form>
+        <button id="open-button" class="open-button">Open Modal</button>
+        <pre id="events"></pre>
+
+      </div>
+    </div>
+  </div>
+<!-- End main left box -->
+</div>
+
+<!-- Main right box -->
+<div class="right-main-box">
+  <div class="right-container">
+    <div class="day-night box-style">
+      <span id='night'><img src="img/moon.png"></span>
+      <span id='day'><img src="img/sun.png"></span>
+    </div>
+
+    <div class="role-box box-style">
+      <div class="box-head">Role</div>
+      <div class="box-body">
+        Your role is <span id="role">Unassigned</span>.
+      </div>
+    </div>
+
+     <div class="players-box box-style">
+        <div class="box-head">Players</div>
+        <div class="box-body">
+          <ul></ul>
+     </div>
+  </div>
+</div>
+
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script>
+"use strict";
+/* global io, $ */
+
+var currentActionId;
+
+var socket = io();
+
+$("form#matchmaker").submit(function(e) {
+  socket.emit('join', $('#name').val());
+  $('#matchmaker').hide();
+  e.preventDefault();
+});
+
+$("#action").on('keyup', function(e) {
+  if(e.keyCode === 13) {
+    $('#modal').hide();
+    socket.emit(currentActionId, this.value);
+  }
+});
+
+var pre = $("#events");
+socket.on("game event", function(msg) {
+
+  // Did someone die
+  if(msg.type === 'killed') {
+    msg.killed.forEach(function(k) {
+      $('<li></li>').text(k).appendTo('.list-of-deaths ul');
+    })
+  }
+
+ // Did you die
+  if(msg.type === 'death') {
+    $('.death-notice .reason').text(msg.msg)
+    $('.death-notice').show()
+  }
+
+  // update role information
+  if(msg.type === "start" && msg.role !== undefined) {
+    $('div.role-box #role').text(msg.role);
+    $('span#night').hide();
+    $('span#day').hide();
+
+    // Show all the players names.
+    msg.players.forEach(function(p) {
+      $('<li></li>').text(p).appendTo('.players-box ul')
+    })
+  }
+
+  // update time
+  if(msg.type === 'timechange') {
+    if(msg.time === 'night') {
+      $('span#night').show();
+      $('span#day').hide();
+    } else {
+      $('span#night').hide();
+      $('span#day').show();
+    }
+  }
+
+  pre.append("\n\n" + JSON.stringify(msg, null, 2));
+
+  if(msg.type === "rfa") {
+    currentActionId = msg.identifier;
+    $('#action').val("")
+    $('#modal').show();
+  }
+});
+</script>
+
+</BODY>
+</HTML>

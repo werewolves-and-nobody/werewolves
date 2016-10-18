@@ -13,7 +13,9 @@ var Game = function Game(numPlayers) {
 };
 
 Game.prototype.actions = [
+  "setNightAction",
   "werewolvesAction",
+  "setDayAction",
   "dawnOfDeathAction",
   "voteAction",
   "killVictimsAction",
@@ -39,6 +41,7 @@ Game.prototype.startGame = function startGame() {
   this.victims = [];
 
   // Everyone starts as a nobody
+  this.everyone = this.players.slice();
   this.players.forEach(function(p) {
     p.role = ROLE_NOBODY;
   });
@@ -51,7 +54,7 @@ Game.prototype.startGame = function startGame() {
   helpers.shuffle(this.players);
 
   this.players[0].role = ROLE_WEREWOLVES;
-  this.players.forEach(function(player) {
+  this.everyone.forEach(function(player) {
     player.socket.emit("game event", {
       type: "start",
       role: player.role,
@@ -198,6 +201,34 @@ Game.prototype.dawnOfDeathAction = function dawnOfDeathAction() {
       msg: "You survived. GJ. Players killed during the night: " + victimsFormatted
     });
   });
+  this.everyone.forEach(function(p) {
+    p.socket.emit("game event", {
+      type: "killed",
+      killed: victimsFormatted,
+    });
+  });
+
+  this.doNextAction();
+};
+
+Game.prototype.setNightAction = function setNightAction() {
+  this.everyone.forEach(function(p) {
+    p.socket.emit("game event", {
+      type: "timechange",
+      time: "night"
+    });
+  });
+
+  this.doNextAction();
+};
+
+Game.prototype.setDayAction = function setDayAction() {
+  this.everyone.forEach(function(p) {
+    p.socket.emit("game event", {
+      type: "timechange",
+      time: "day"
+    });
+  });
 
   this.doNextAction();
 };
@@ -258,6 +289,12 @@ Game.prototype.voteAction = function voteAction() {
         p.socket.emit("game event", {
           type: "vote",
           msg: "End of vote, village picked " + victim.name + "."
+        });
+      });
+      self.everyone.forEach(function(p) {
+        p.socket.emit("game event", {
+          type: "killed",
+          killed: [victim.name],
         });
       });
 

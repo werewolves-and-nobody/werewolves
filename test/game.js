@@ -121,7 +121,7 @@ describe("new Game()", function() {
       game.advanceUntilAction("werewolvesAction");
 
       assert.equal(werewolf.socket.emits[0].type, "rfa");
-      assert.equal((werewolf === p1 ? p2 : p1).socket.emits[0].type, "start");
+      assert.equal((werewolf === p1 ? p2 : p1).socket.emits[0].type, "timechange"); // should've just gone night
       done();
     });
 
@@ -148,7 +148,8 @@ describe("new Game()", function() {
       game.advanceUntilAction("dawnOfDeathAction");
 
       // Player not werewolf should now be dead
-      assert.equal((werewolf === p1 ? p2 : p1).socket.emits[0].type, "death");
+      assert.equal((werewolf === p1 ? p2 : p1).socket.emits[0].type, "killed");
+      assert.equal((werewolf === p1 ? p2 : p1).socket.emits[1].type, "death");
 
       done();
     });
