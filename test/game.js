@@ -144,6 +144,56 @@ describe("new Game()", function() {
       done();
     });
 
-    it("should then move on to vote");
+    it("should kill the loser", function(done) {
+      game.advanceUntilAction("dawnOfDeathAction");
+
+      // Player not werewolf should now be dead
+      assert.equal((werewolf === p1 ? p2 : p1).socket.emits[0].type, "death");
+
+      done();
+    });
+
+    it("should ask survivors to vote for an existing player", function(done) {
+      game.advanceUntilAction("voteAction");
+
+      // Everyone else should be voting
+      assert.equal((werewolf === p1 ? p1 : p2).socket.emits[0].type, "rfa");
+      assert.equal(p3.socket.emits[0].type, "rfa");
+
+      p3.socket.ons[game.getCurrentIdentifier()]("trump");
+      (werewolf === p1 ? p1 : p2).socket.ons[game.getCurrentIdentifier()]("trump");
+
+      process.nextTick(function() {
+        assert.equal(p3.socket.emits[0].type, "rfa");
+        assert.ok(p3.socket.emits[0].description.indexOf("morons") !== -1);
+        done();
+      });
+    });
+
+    it("should hang the player they're voting for", function(done) {
+      game.advanceUntilAction("voteAction");
+
+      // Everyone should be voting
+      assert.equal((werewolf === p1 ? p1 : p2).socket.emits[0].type, "rfa");
+      assert.equal(p3.socket.emits[0].type, "rfa");
+
+      p3.socket.ons[game.getCurrentIdentifier()](p3.name);
+      (werewolf === p1 ? p1 : p2).socket.ons[game.getCurrentIdentifier()](p3.name);
+
+      process.nextTick(function() {
+        game.advanceUntilAction("killVictimsAction");
+
+        assert.equal(p3.socket.emits[0].type, "death");
+        done();
+      });
+    });
+
+    it("should display the winner of the game", function(done) {
+      game.realDoNextAction();
+
+      assert.equal((werewolf === p1 ? p1 : p2).socket.emits[0].type, "win");
+
+      done();
+    });
   });
 });
