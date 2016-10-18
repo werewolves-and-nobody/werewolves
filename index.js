@@ -19,10 +19,7 @@ server.listen(process.env.PORT || 3000, function() {
 });
 
 io.on('connection', function(socket) {
-  console.log('a user connected');
-
   socket.on('disconnect', function() {
-    console.log('user disconnected.');
   });
 
   socket.on('join', function(msg) {
@@ -33,7 +30,7 @@ io.on('connection', function(socket) {
 
     if(currentlyBuildingGame.canStartGame()) {
       currentlyBuildingGame.startGame();
-      currentlyBuildingGame = new Game();
+      currentlyBuildingGame = new Game(3);
     }
   });
 });
