@@ -75,7 +75,7 @@ ul {
 .face-box {
     float: left;
     width: 260px;
-    height: 86%;
+    height: 94%;
     margin-left: 50px;
     padding-bottom: 10px;
     padding-top: 10px;
@@ -85,7 +85,7 @@ ul {
 .chat-box {
     float: left;
     position: absolute;
-    height: 86%;
+    height: 94%;
     width: 65%; 
     border-left: none;
     margin-left: 15px;
