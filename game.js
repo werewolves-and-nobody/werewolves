@@ -12,6 +12,7 @@ var Game = function Game() {
 };
 
 Game.prototype.actions = [
+  "setNightAction",
   "werewolvesAction",
   "setDayAction",
   "dawnOfDeathAction",
@@ -203,7 +204,8 @@ Game.prototype.setNightAction = function setNightAction() {
       type: "timechange",
       time: "night"
     })
-  })
+  });
+  doNextAction();
 }
 Game.prototype.setDayAction = function setDayAction() {
   this.players.forEach(function(p) {
@@ -212,6 +214,7 @@ Game.prototype.setDayAction = function setDayAction() {
       time: "day"
     })
   })
+  doNextAction();
 }
 
 Game.prototype.voteAction = function voteAction() {

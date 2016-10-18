@@ -82,6 +82,8 @@ socket.on("game event", function(msg) {
   // update role information
   if(msg.type === "start" && msg.role !== undefined) {
     $('div.role-box #role').text(msg.role);
+    $('span#night').hide();
+      $('span#day').hide();
   }
 
   // update time
