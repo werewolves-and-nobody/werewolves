@@ -8,8 +8,9 @@ var io = require('socket.io')(server);
 var Game = require('./game');
 
 var currentlyBuildingGame = new Game();
-console.log(currentlyBuildingGame.toString());
-app.get("/", function(req, res) {
+app.use(express.static('public'));
+
+app.get("*", function(req, res) {
   res.sendfile('index.html');
 });
 
