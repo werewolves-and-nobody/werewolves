@@ -102,11 +102,24 @@ body {
 .role-box {
     display: block;
     float: right;
-    position: inherit;
     width: 250px;
     padding: 4px;
-    margin-top: 160px;
-    margin-right: -175px;
+    margin-top: 40px;
+    margin-right: 50px;
     border: solid 1px gray; 
     height: 30%;
+}
+
+.players-box {
+    display: block;
+    float: right;
+    position: absolute;
+    bottom: 0;
+    width: 250px;
+    padding: 4px;
+    margin-top: 50px;
+    margin-left: 40px;
+    margin-bottom: 20px;
+    border: solid 1px gray; 
+    height: 40%;
 }
