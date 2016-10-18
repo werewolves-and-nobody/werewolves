@@ -164,7 +164,7 @@ ul {
   /* Use this for centering if unknown width/height */
   transform: translate(-50%, -50%);
 }
-.closed {
+.modal .closed {
   display: none;
 }
 
