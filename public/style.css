@@ -1,4 +1,6 @@
+/* General HTML styles */
 * {
+    box-sizing: border-box;
     margin:0;
     padding:0;
 }
@@ -9,41 +11,11 @@ body {
     background-color: rgb(251, 253, 249);
 }
 
-.left-main-box {
-  float: left;
-  margin: 0;
-  padding: 0;
-  width: 74%;
-  height: 100%;
-/*  border: 1px solid black; */
+ul {
+   margin-left: 18px;
 }
 
-.right-main-box {
-  float: left;
-  position: absolute;
-  margin: 0;
-  padding: 0;
-  width: 350px;
-  height: 100%;
-  margin-left: 75%;
-/*  border: 1px solid black; */
-}
-
-.right-container {
-  margin-left: 50px;
-}
-
-.list-of-deaths {
-    display: block;
-    float: left;
-    min-width: 250px;
-    padding: 10px;
-    margin-top: 30px;
-    margin-left: 50px;
-    /* border: dashed 1px gray; */
-    height: 30%;
-}
-
+/* General box styles */
 .box-head {
     font-size: 13pt;
     font-weight: 600;
@@ -61,10 +33,29 @@ body {
    background-color: #FFF;
 }
 
-.list-of-deaths ul {
-   margin-left: 18px;
+/* Left column */
+.left-main-box {
+  float: left;
+  margin: 0;
+  padding: 0;
+  width: 74%;
+  height: 100%;
+/*  border: 1px solid black; */
 }
 
+.list-of-deaths {
+    display: block;
+    float: left;
+    min-width: 250px;
+    padding: 10px;
+    margin-top: 30px;
+    margin-left: 50px;
+    /* border: dashed 1px gray; */
+    height: 30%;
+}
+
+
+/* Bottom container, in the right box */
 .bottom-box {
   display: block;
   position : absolute;
@@ -101,6 +92,21 @@ body {
     padding: 10px;
 }
 
+/* Right column boxes */
+.right-container {
+  margin-left: 50px;
+}
+
+.right-main-box {
+  float: left;
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  width: 350px;
+  height: 100%;
+  margin-left: 75%;
+}
+
 .day-night {
     display: block;
     width: 200px;
@@ -132,3 +138,64 @@ body {
     margin-bottom: 20px;
     height: 45%;
 }
+
+
+/*
+ * Modal CSS 
+ */
+
+.modal {
+  display: block;
+  width: 400px;
+  max-width: 100%;
+  height: 150px;
+  max-height: 100%;
+  position: fixed;
+  z-index: 100;
+  left: 50%;
+  top: 50%;
+  background: white;
+  box-shadow: 0 0 20px 2px rgba(49, 44, 44, 0.9);
+
+  /* Use this for centering if unknown width/height */
+  transform: translate(-50%, -50%);
+}
+.closed {
+  display: none;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.6);
+}
+.modal-guts {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: 20px 50px 20px 20px;
+}
+
+.modal .close-button {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  
+  /* needs to look OK with or without scrollbar */
+  right: 20px;
+  border: 0;
+  background: black;
+  color: white;
+  padding: 5px 10px;
+  font-size: 1.3rem;
+}
+
+
+
