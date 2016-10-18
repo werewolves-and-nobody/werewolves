@@ -294,7 +294,7 @@ Game.prototype.voteAction = function voteAction() {
       self.everyone.forEach(function(p) {
         p.socket.emit("game event", {
           type: "killed",
-          killed: victimsFormatted,
+          killed: [victim.name],
         });
       });
 
