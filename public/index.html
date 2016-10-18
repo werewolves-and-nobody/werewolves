@@ -1,0 +1,95 @@
+<HTML>
+<HEAD><TITLE>Awesome Game by Matt²</TITLE>
+<link rel="stylesheet" type="text/css" href="style.css" />
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script>
+"use strict";
+/* global io, $ */
+
+var currentActionId;
+
+var socket = io();
+
+$("#join").click(function() {
+  socket.emit('join', $('#name').val());
+  $('#matchmaker').hide();
+});
+
+$("#action").on('keyup', function(e) {
+  if(e.keyCode === 13) {
+    $('#action').hide();
+    socket.emit(currentActionId, this.value);
+  }
+});
+
+
+var pre = $("#events");
+socket.on("game event", function(msg) {
+  pre.append("\n\n" + JSON.stringify(msg, null, 2));
+
+  if(msg.type === "rfa") {
+    currentActionId = msg.identifier;
+    $('#action').show();
+  }
+});
+</script>
+
+
+<BODY>
+<!-- Main left box -->
+<div class="left-main-box">
+  <div class="list-of-deaths">
+    <div class="box-head">They dead!</div>
+    <div class="body-body">
+      <ul>
+        <li>bla</li>
+        <li>bla</li>
+        <li>bla</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="bottom-box">
+    <div class="bottom-container"> 
+      <div class="face-box">
+      <pre>
+        o
+       \|/
+        /\
+      </pre>
+      </div>
+      <div class="chat-box">
+        <form id="matchmaker">
+          <input type="text" name="name" id="name" value="p1"/>
+          <input type="button" id="join" value="Join game" />
+        </form>
+
+        <pre id="events"></pre>
+
+        <input type="text" style="display:none" name="action" id="action"/>
+      </div>
+    </div>
+  </div>
+<!-- End main left box -->
+</div>
+
+<!-- Main right box -->
+<div class="right-main-box">
+  <div class="day-night">
+    <img src="img/moon.png">
+    <img src="img/sun.png">
+  </div>
+
+  <div class="role-box">
+    <div class="box-head">Role</div>
+    <div class="box-body">
+      bla
+    </div>
+  </div>
+</div>
+
+
+
+</BODY>
+</HTML>
