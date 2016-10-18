@@ -11,7 +11,7 @@ var currentlyBuildingGame = new Game();
 app.use(express.static('public'));
 
 app.get("*", function(req, res) {
-  res.sendfile('index.html');
+  res.sendfile('public/index.html');
 });
 
 server.listen(process.env.PORT || 3000, function() {
