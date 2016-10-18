@@ -7,13 +7,12 @@
 <!-- Model code -->
 <div class="modal closed" id="modal">
 <div class="modal-overlay closed" id="modal-overlay"></div>
-  <button class="close-button" id="close-button">X</button>
   <div class="modal-guts">
     <h1 id="action-title">Awesome Action!</h1>
     <p id="action-text">
       How now brown cow?
-      <input type="text" name="action" id="action"/>
     </p>
+    <input type="text" name="action" id="action"/>
   </div>
 </div>
 <!-- End modal code -->
@@ -75,12 +74,14 @@
 
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="/scripts/UIHelper.js"></script>
 <script>
 "use strict";
 /* global io, $ */
 
 var currentActionId;
 
+var UI = new UIHelper();
 var socket = io();
 
 $("form#matchmaker").submit(function(e) {
@@ -90,57 +91,41 @@ $("form#matchmaker").submit(function(e) {
 });
 
 $("#action").on('keyup', function(e) {
-  if(e.keyCode === 13) {
-    $('#modal').hide();
+  if(e.keyCode === 13 && this.value !== "") {
+    UI.hideModal();
     socket.emit(currentActionId, this.value);
   }
 });
 
-var pre = $("#events");
 socket.on("game event", function(msg) {
+  UI.debug(msg);
 
   // Did someone die
   if(msg.type === 'killed') {
-    msg.killed.forEach(function(k) {
-      $('<li></li>').text(k).appendTo('.list-of-deaths ul');
-    })
+    UI.addDeaths(msg.killed);
   }
 
  // Did you die
   if(msg.type === 'death') {
-    $('.death-notice .reason').text(msg.msg)
-    $('.death-notice').show()
+    UI.playerDeath();
   }
 
   // update role information
   if(msg.type === "start" && msg.role !== undefined) {
-    $('div.role-box #role').text(msg.role);
-    $('span#night').hide();
-    $('span#day').hide();
-
-    // Show all the players names.
-    msg.players.forEach(function(p) {
-      $('<li></li>').text(p).appendTo('.players-box ul')
-    })
+    UI.updateRole(msg.role);
+    UI.updatePlayers(msg.players);
+    UI.updateUI('night');
   }
 
   // update time
   if(msg.type === 'timechange') {
-    if(msg.time === 'night') {
-      $('span#night').show();
-      $('span#day').hide();
-    } else {
-      $('span#night').hide();
-      $('span#day').show();
-    }
+    UI.updateUI(msg.time);
   }
-
-  pre.prepend(JSON.stringify(msg, null, 2) + "\n\n" );
 
   if(msg.type === "rfa") {
     currentActionId = msg.identifier;
-    $('#action').val("")
-    $('#modal').show();
+    UI.showModal({title: "default-title", content: "default-content"});
+
   }
 });
 </script>
