@@ -41,12 +41,7 @@
       </pre>
       </div>
       <div class="chat-box box-style">
-        <form id="matchmaker">
-          <input type="text" name="name" id="name" value="p1"/>
-          <button type="submit" id="join">Join game</button>
-        </form>
         <pre id="events"></pre>
-
       </div>
     </div>
   </div>
@@ -84,20 +79,20 @@
 /* global io, $ */
 
 var currentActionId;
-
+var gameStarted = false;
 var UI = new UIHelper();
 var socket = io();
 
-$("form#matchmaker").submit(function(e) {
-  socket.emit('join', $('#name').val());
-  $('#matchmaker').hide();
-  e.preventDefault();
-});
+UI.showModal({title: "What's your name", content: "Pick a name to be known as in town"})
 
 $("#action").on('keyup', function(e) {
   if(e.keyCode === 13 && this.value !== "") {
     UI.hideModal();
-    socket.emit(currentActionId, this.value);
+
+    if (gameStarted)
+      socket.emit(currentActionId, this.value);
+    else
+      socket.emit('join', this.value);
   }
 });
 
@@ -119,6 +114,7 @@ socket.on("game event", function(msg) {
     UI.updateRole(msg.role);
     UI.updatePlayers(msg.players);
     UI.updateUI('night');
+    gameStarted = true;
   }
 
   // update time
