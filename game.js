@@ -7,8 +7,9 @@ var helpers = require("./helpers.js");
 var async = require("async");
 var debug = require("debug")("werewolves:game");
 
-var Game = function Game() {
+var Game = function Game(numPlayers) {
   this.players = [];
+  this.numPlayers = numPlayers;
 };
 
 Game.prototype.actions = [
@@ -18,24 +19,25 @@ Game.prototype.actions = [
   "killVictimsAction",
 ];
 
-Game.prototype.addPlayer = function addPLayer(player) {
+Game.prototype.addPlayer = function addPlayer(player) {
     debug("Adding new player to pool: " + player.name);
     this.players.push(player);
 
     player.socket.emit("game event", {
-      type: "Joined game matchmaking"
+      type: "joined",
+      msg: "Joined game matchmaking"
     });
-
-    this.currentAction = -1;
-    this.currentDay = 0;
-    this.victims = [];
   };
 
 Game.prototype.canStartGame = function canStartGame() {
-    return this.players.length >= 3;
+    return this.players.length >= this.numPlayers;
   };
 
 Game.prototype.startGame = function startGame() {
+  this.currentAction = -1;
+  this.currentDay = 0;
+  this.victims = [];
+
   // Everyone starts as a nobody
   this.players.forEach(function(p) {
     p.role = ROLE_NOBODY;
@@ -106,8 +108,10 @@ Game.prototype.doNextAction = function doNextAction(err) {
   }
 
   var nextAction = this.actions[this.currentAction];
-  debug("Doing action #" + this.currentAction);
+  debug("Doing action #" + this.currentAction + ": " + nextAction);
   this[nextAction]();
+
+  return nextAction;
 };
 
 
@@ -142,8 +146,11 @@ Game.prototype.werewolvesAction = function werewolvesAction() {
       });
 
       var victim = self.getPlayerByName(msgs[0]);
+
       if(!allEqual || !victim) {
+        debug("Quorum failed. Trying again.");
         notifyWerewolves("Please ensure you all eat the same person. Thanks. Persons voted: " + msgs.join(", "));
+        return;
       }
 
       victim.causeOfDeath = "Eaten by werewolves.";
