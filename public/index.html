@@ -2,10 +2,11 @@
 <HEAD><TITLE>Awesome Game by Matt²</TITLE>
 <link rel="stylesheet" type="text/css" href="style.css" />
 <BODY>
+<div class='death-notice'></div>
 
 <!-- Model code -->
-<div class="modal-overlay closed" id="modal-overlay"></div>
 <div class="modal closed" id="modal">
+<div class="modal-overlay closed" id="modal-overlay"></div>
   <button class="close-button" id="close-button">X</button>
   <div class="modal-guts">
     <h1 id="action-title">Awesome Action!</h1>
@@ -41,7 +42,7 @@
           <input type="text" name="name" id="name" value="p1"/>
           <button type="submit" id="join">Join game</button>
         </form>
-        <button id="open-button" class="open-button">Open Modal</button> 
+        <button id="open-button" class="open-button">Open Modal</button>
         <pre id="events"></pre>
 
       </div>
@@ -92,7 +93,7 @@ $("form#matchmaker").submit(function(e) {
 
 $("#action").on('keyup', function(e) {
   if(e.keyCode === 13) {
-    $('#action').hide();
+    $('#modal').hide();
     socket.emit(currentActionId, this.value);
   }
 });
@@ -140,7 +141,8 @@ socket.on("game event", function(msg) {
 
   if(msg.type === "rfa") {
     currentActionId = msg.identifier;
-    $('#action').val("").show();
+    $('#action').val("")
+    $('#modal').show();
   }
 });
 </script>

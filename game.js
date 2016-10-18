@@ -285,7 +285,7 @@ Game.prototype.voteAction = function voteAction() {
           msg: "End of vote, village picked " + victim.name + "."
         });
       });
-      this.everyone.forEach(function(p) {
+      self.everyone.forEach(function(p) {
         p.socket.emit("game event", {
           type: "killed",
           killed: victimsFormatted,
