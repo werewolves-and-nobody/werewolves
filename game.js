@@ -15,6 +15,7 @@ Game.prototype.actions = [
   "werewolvesAction",
   "dawnOfDeathAction",
   "voteAction",
+  "killVictimsAction",
 ];
 
 Game.prototype.addPlayer = function addPLayer(player) {
@@ -31,7 +32,7 @@ Game.prototype.addPlayer = function addPLayer(player) {
   };
 
 Game.prototype.canStartGame = function canStartGame() {
-    return this.players.length >= 2;
+    return this.players.length >= 3;
   };
 
 Game.prototype.startGame = function startGame() {
@@ -48,7 +49,6 @@ Game.prototype.startGame = function startGame() {
   helpers.shuffle(this.players);
 
   this.players[0].role = ROLE_WEREWOLVES;
-  this.players[1].role = ROLE_WEREWOLVES;
   this.players.forEach(function(player) {
     player.socket.emit("game event", {
       type: "start",
@@ -68,7 +68,7 @@ Game.prototype.getRoles = function getRoles(role) {
 };
 
 Game.prototype.getPlayerByName = function getPlayerByName(name) {
-  return this.players.filter(function(p) {
+  return this.players.find(function(p) {
     return p.name === name;
   });
 };
@@ -85,6 +85,19 @@ Game.prototype.doNextAction = function doNextAction(err) {
   }
 
   this.currentAction += 1;
+
+  var werewolvesCount = this.getRoles(ROLE_WEREWOLVES).length;
+
+  if(this.players.length === 1 || werewolvesCount === 0 ||  werewolvesCount === this.players.length) {
+    this.players.forEach(function(p) {
+      p.socket.emit("game event", {
+        type: "win",
+        msg: "You win. GG."
+      });
+    });
+
+    return;
+  }
 
   if(this.currentAction >= this.actions.length) {
     debug("Starting new day");
@@ -129,7 +142,7 @@ Game.prototype.werewolvesAction = function werewolvesAction() {
       });
 
       var victim = self.getPlayerByName(msgs[0]);
-      if(!allEqual && victim) {
+      if(!allEqual || !victim) {
         notifyWerewolves("Please ensure you all eat the same person. Thanks. Persons voted: " + msgs.join(", "));
       }
 
@@ -137,35 +150,120 @@ Game.prototype.werewolvesAction = function werewolvesAction() {
 
       self.victims.push(victim);
 
-      self.nextAction();
+      self.doNextAction();
     });
   };
 
   notifyWerewolves("EAT SOMEONE OM NOM");
 };
 
-Game.prototype.dawnOfDeathAction = function dawnOfDeathAction() {
-  this.victims.forEach(function(v) {
+Game.prototype.killVictimsAction = function() {
+  this.killVictims();
+  this.doNextAction();
+};
+
+Game.prototype.killVictims = function() {
+  var self = this;
+  self.victims.forEach(function(v) {
     v.socket.emit("game event", {
       type: "death",
       msg: "You died: " + v.causeOfDeath + ". Poor soul. Go play Mario."
     });
 
-    this.players.splice(this.players.indexOf(v), 1);
+    self.players.splice(self.players.indexOf(v), 1);
   });
 
-  var victimsFormatted = this.victims.map(function(v) {
+  self.victims = [];
+};
+
+
+Game.prototype.dawnOfDeathAction = function dawnOfDeathAction() {
+  var victims = this.victims;
+  this.killVictims();
+
+  var victimsFormatted = victims.map(function(v) {
     return v.name;
   });
 
   this.players.forEach(function(p) {
     p.socket.emit("game event", {
       type: "dawn",
-      msg: "You survived. GG. Players killed:"
+      msg: "You survived. GJ. Players killed during the night: " + victimsFormatted
     });
   });
 
-  this.players.forEach()
+  this.doNextAction();
 };
+
+Game.prototype.voteAction = function voteAction() {
+  var self = this;
+
+  function notifyVote(description) {
+    var identifier = self.getCurrentIdentifier();
+    debug("Time to vote");
+    async.map(self.players, function(player, cb) {
+      player.socket.emit("game event", {
+        type: "rfa",
+        description: description,
+        choices: self.players.map(function(p) {
+          return p.name;
+        }),
+        identifier: identifier
+      });
+
+      player.socket.once(identifier, function(msg) {
+        debug("Voting: " + msg);
+
+        player.socket.emit("game event", {
+          type: "ack",
+          msg: "You voted for " + msg
+        });
+        cb(null, msg);
+      });
+    }, function(err, msgs) {
+      var candidates = {};
+      msgs.forEach(function(m) {
+        if(!candidates[m]) {
+          candidates[m] = 0;
+        }
+
+        candidates[m] += 1;
+      });
+
+      debug("Built candidates: ", candidates);
+
+      var victim = Object.keys(candidates).reduce(function(c, currCandidate) {
+        if(currCandidate === null || candidates[currCandidate] < candidates[c]) {
+          return c;
+        }
+        return currCandidate;
+      }, null);
+
+      victim = self.getPlayerByName(victim);
+
+      if(!victim) {
+        debug("Invalid vote");
+        notifyVote("U fucking morons vote for someone in your village");
+        return;
+      }
+
+      self.players.forEach(function(p) {
+        p.socket.emit("game event", {
+          type: "vote",
+          msg: "End of vote, village picked " + victim.name + "."
+        });
+      });
+
+      victim.causeOfDeath = "Hung by town.";
+      self.victims.push(victim);
+
+      self.doNextAction();
+    });
+  }
+
+  notifyVote("Vote to hang someone");
+};
+
+
 
 module.exports = Game;
