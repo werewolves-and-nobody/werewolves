@@ -36,20 +36,24 @@ ul {
 /* Left column */
 .left-main-box {
   float: left;
+  position: absolute;
   margin: 0;
   padding: 0;
   width: 74%;
   height: 100%;
+  min-height: 700px;
+  min-width: 1000px;
+  overflow: auto;
 }
 
 .list-of-deaths {
-    display: block;
-    float: left;
-    min-width: 250px;
-    padding: 10px;
-    margin-top: 30px;
-    margin-left: 50px;
-    height: 30%;
+  display: block;
+  float: left;
+  min-width: 250px;
+  padding: 10px;
+  margin-top: 30px;
+  margin-left: 50px;
+  height: 350px;
 }
 
 
@@ -58,22 +62,21 @@ ul {
   display: block;
   position : absolute;
   bottom : 0;
-  width: 74%;
+  width: 100%;
   height : 300px;
 }
 
 .bottom-container {
   position: inherit;
   width: 105%;
-  height: 100%;
   /* border-right: dashed 1px gray; */
-  overflow:hidden;
+  height: 350px;
 }
 
 .face-box {
     float: left;
-    width: 260px;
-    height: 94%;
+    width: 250px;
+    height: 280px;
     margin-left: 50px;
     padding-bottom: 10px;
     padding-top: 10px;
@@ -83,7 +86,7 @@ ul {
 .chat-box {
     float: left;
     position: absolute;
-    height: 94%;
+    height: 280px;
     width: 65%;
     border-left: none;
     margin-left: 15px;
@@ -103,6 +106,8 @@ ul {
   width: 350px;
   height: 100%;
   margin-left: 75%;
+  min-height: 700px;
+  overflow: auto;
 }
 
 .day-night {
@@ -134,7 +139,7 @@ ul {
     padding: 10px;
     margin-top: 50px;
     margin-bottom: 20px;
-    height: 45%;
+    height: 350px;
 }
 
 
