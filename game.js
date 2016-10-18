@@ -192,7 +192,7 @@ Game.prototype.dawnOfDeathAction = function dawnOfDeathAction() {
   this.killVictims();
 
   var victimsFormatted = victims.map(function(v) {
-    return v.name;
+    return {name: v.name, role: v.role};
   });
 
   this.players.forEach(function(p) {
@@ -294,7 +294,7 @@ Game.prototype.voteAction = function voteAction() {
       self.everyone.forEach(function(p) {
         p.socket.emit("game event", {
           type: "killed",
-          killed: [victim.name],
+          killed: [{name: victim.name, role: victim.role}],
         });
       });
 

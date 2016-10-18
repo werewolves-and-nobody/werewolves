@@ -175,3 +175,31 @@ ul {
   padding: 20px 50px 20px 20px;
 }
 
+.modal input {
+  display: block;
+  font-size: 1.2em;
+  margin: 10px auto;
+}
+
+.death-container .death-overlay {
+  z-index: 99;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.death-container .death-notice {
+  position: fixed;
+  top: 30px;
+  right: 350px;
+  font-size: 3em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.death-container .death-notice .reason {
+  font-size: 0.4em;
+}
