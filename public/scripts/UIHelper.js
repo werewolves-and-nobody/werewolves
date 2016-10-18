@@ -44,7 +44,7 @@
 
   UIHelper.prototype.addDeath = function addDeath(player) {
     var $container = $('.list-of-deaths ul');
-    var $deathEl = $('<li></li>').text(`${k.name} (${k.role})`);
+    var $deathEl = $('<li></li>').text(`${player.name} (${player.role})`);
     $container.append($deathEl);
   };
 
