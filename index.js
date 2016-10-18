@@ -7,7 +7,7 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var Game = require('./game');
 
-var currentlyBuildingGame = new Game();
+var currentlyBuildingGame = new Game(3);
 app.use(express.static('public'));
 
 app.get("*", function(req, res) {
