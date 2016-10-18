@@ -21,7 +21,7 @@
 <!-- Main left box -->
 <div class="left-main-box">
   <div class="list-of-deaths box-style">
-    <div class="box-head">They dead!</div>
+    <div class="box-head">Dead Players</div>
     <div class="body-body">
       <ul>
       </ul>
@@ -42,7 +42,6 @@
           <input type="text" name="name" id="name" value="p1"/>
           <button type="submit" id="join">Join game</button>
         </form>
-        <button id="open-button" class="open-button">Open Modal</button>
         <pre id="events"></pre>
 
       </div>
@@ -136,7 +135,7 @@ socket.on("game event", function(msg) {
     }
   }
 
-  pre.append("\n\n" + JSON.stringify(msg, null, 2));
+  pre.prepend(JSON.stringify(msg, null, 2) + "\n\n" );
 
   if(msg.type === "rfa") {
     currentActionId = msg.identifier;
