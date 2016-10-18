@@ -1,0 +1,17 @@
+
+
+<form id="matchmaker">
+  <input type="text" name="name" id="name" value="p1"/>
+  <input type="button" id="join" value="Join game" />
+</form>
+
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script>
+"use strict";
+var socket = io();
+
+$("#join").click(function() {
+  socket.emit('join', $('#name').val());
+});
+</script>
