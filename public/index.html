@@ -29,10 +29,10 @@
           <input type="text" name="name" id="name" value="p1"/>
           <button type="submit" id="join">Join game</button>
         </form>
+        <input type="text" style="display:none" name="action" id="action"/>
 
         <pre id="events"></pre>
 
-        <input type="text" style="display:none" name="action" id="action"/>
       </div>
     </div>
   </div>
@@ -87,6 +87,20 @@ $("#action").on('keyup', function(e) {
 
 var pre = $("#events");
 socket.on("game event", function(msg) {
+
+  // Did someone die
+  if(msg.type === 'killed') {
+    msg.killed.forEach(function(k) {
+      $('<li></li>').text(k).appendTo('.list-of-deaths ul');
+    })
+  }
+
+ // Did you die
+  if(msg.type === 'death') {
+    $('.death-notice .reason').text(msg.msg)
+    $('.death-notice').show()
+  }
+
   // update role information
   if(msg.type === "start" && msg.role !== undefined) {
     $('div.role-box #role').text(msg.role);
@@ -103,14 +117,13 @@ socket.on("game event", function(msg) {
       $('span#night').hide();
       $('span#day').show();
     }
-
   }
 
   pre.append("\n\n" + JSON.stringify(msg, null, 2));
 
   if(msg.type === "rfa") {
     currentActionId = msg.identifier;
-    $('#action').show();
+    $('#action').val("").show();
   }
 });
 </script>
