@@ -8,7 +8,7 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var Game = require('./game');
 
-var currentlyBuildingGame = new Game(4);
+var currentlyBuildingGame = new Game(2);
 app.use(opbeat.middleware.express());
 app.use(express.static('public'));
 
@@ -32,7 +32,7 @@ io.on('connection', function(socket) {
 
     if(currentlyBuildingGame.canStartGame()) {
       currentlyBuildingGame.startGame();
-      currentlyBuildingGame = new Game(4);
+      currentlyBuildingGame = new Game(2);
     }
   });
 });
