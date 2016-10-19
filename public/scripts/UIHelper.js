@@ -1,3 +1,6 @@
+/* global $ */
+/* global module */
+/* global window */
 (function() {
   'use strict';
   var UIHelper = function UIHelper() {
@@ -9,7 +12,7 @@
   };
 
   UIHelper.prototype.updatePlayers = function updatePlayers(players) {
-   // Show all the players names.
+    // Show all the players names.
     players.forEach(function(p) {
       $('<li></li>').text(p).appendTo('.players-box ul');
     });
@@ -19,14 +22,15 @@
     if(time === 'night') {
       $('span#night').show();
       $('span#day').hide();
-    } else {
+    }
+    else {
       $('span#night').hide();
       $('span#day').show();
     }
   };
 
   UIHelper.prototype.showModal = function showModal(opt) {
-    opt = opt || {}
+    opt = opt || {};
     var title = opt.title || 'default-title';
     var content = opt.content || 'default-content';
 
@@ -57,7 +61,7 @@
 
   UIHelper.prototype.debug = function debug(message) {
     var $pre = $("#events");
-    $pre.prepend(JSON.stringify(message, null, 2) + "\n\n" );
+    $pre.prepend(JSON.stringify(message, null, 2) + "\n\n");
   };
 
   UIHelper.prototype.playerDeath = function playerDeath(reason) {
@@ -65,8 +69,10 @@
     $('.death-container').show();
   };
 
-  if (typeof module !== 'undefined' && typeof module.exports !== 'undefined')
+  if(typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = UIHelper;
-  else
+  }
+  else {
     window.UIHelper = UIHelper;
+  }
 })();

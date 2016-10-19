@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "style": "jscs .",
     "lint": "jshint index.js game.js helpers.js test/",
     "test": "NODE_ENV=test mocha --recursive -t 5000 test/"
   },
@@ -17,6 +18,7 @@
     "socket.io": "^1.5.0"
   },
   "devDependencies": {
+    "jscs": "^3.0.7",
     "jshint": "^2.9.3",
     "mocha": "^3.1.2"
   }
