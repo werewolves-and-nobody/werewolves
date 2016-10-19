@@ -127,6 +127,7 @@ Game.prototype.werewolvesAction = function werewolvesAction() {
     async.map(werewolves, function(werewolf, cb) {
       werewolf.socket.emit("game event", {
         type: "rfa",
+        title: "Eat someone",
         description: description,
         choices: self.players.map(function(p) {
           return p.name;

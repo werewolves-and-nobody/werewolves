@@ -124,7 +124,7 @@ socket.on("game event", function(msg) {
 
   if(msg.type === "rfa") {
     currentActionId = msg.identifier;
-    UI.showModal({title: "default-title", content: "default-content"});
+    UI.showModal({title: msg.title, content: msg.description});
 
   }
 });

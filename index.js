@@ -7,7 +7,7 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var Game = require('./game');
 
-var currentlyBuildingGame = new Game(3);
+var currentlyBuildingGame = new Game(4);
 app.use(express.static('public'));
 
 app.get("*", function(req, res) {
@@ -30,7 +30,7 @@ io.on('connection', function(socket) {
 
     if(currentlyBuildingGame.canStartGame()) {
       currentlyBuildingGame.startGame();
-      currentlyBuildingGame = new Game(3);
+      currentlyBuildingGame = new Game(4);
     }
   });
 });
