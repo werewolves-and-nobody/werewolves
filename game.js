@@ -74,7 +74,7 @@ Game.prototype.getRoles = function getRoles(role) {
 
 Game.prototype.getPlayerByName = function getPlayerByName(name) {
   return this.players.find(function(p) {
-    return p.name === name;
+    return p.name.toLowerCase() === name.toLowerCase();
   });
 };
 
