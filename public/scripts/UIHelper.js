@@ -36,6 +36,7 @@
     $('#modal #action-text').text(content);
 
     $('#modal').show();
+    $('#action').focus();
   };
 
   UIHelper.prototype.hideModal = function hideModal() {
