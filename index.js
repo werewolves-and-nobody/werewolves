@@ -9,7 +9,7 @@ var io = require('socket.io')(server);
 var Game = require('./game');
 
 var currentlyBuildingGame = new Game(4);
-app.use(opbeat.middleware.express())
+app.use(opbeat.middleware.express());
 app.use(express.static('public'));
 
 app.get("*", function(req, res) {
