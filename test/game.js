@@ -88,7 +88,7 @@ describe("new Game()", function() {
     game.advanceUntilAction = function(actionName) {
       while(game.realDoNextAction() !== actionName) {
         // Do nothing.
-      };
+      }
     };
 
     game.addPlayer(p1);

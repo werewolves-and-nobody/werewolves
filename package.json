@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "lint": "jshint index.js game.js helpers.js test/",
     "test": "NODE_ENV=test mocha --recursive -t 5000 test/"
   },
   "author": "",
