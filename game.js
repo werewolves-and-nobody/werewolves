@@ -12,9 +12,11 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-var noopCb = function noopCb(err, _) {
-  if (err) console.error(err);
-}
+var noopCb = function noopCb(err) {
+  if (err) {
+    console.error(err);
+  }   
+};
 
 
 var Game = function Game(numPlayers) {
@@ -63,6 +65,10 @@ Game.prototype.addPlayer = function addPlayer(player) {
   });
 };    
 
+Game.prototype.canStartGame = function canStartGame() {
+  return this.players.length === this.numPlayers;
+};
+
 Game.prototype.assignRoles = function assignRoles(players, roles) {
   const totalPlayers = players.length;
   roles = roles || [
@@ -96,7 +102,7 @@ Game.prototype.assignRoles = function assignRoles(players, roles) {
       players[index].role = role.name;
       debug(`${players[index].name} is a ${role.name}`);
       index += 1;
-    }
+    };
   });
 };
 
@@ -219,7 +225,7 @@ Game.prototype.notifyRfa = function notifyRfa(role, display, choices, cb) {
     cb(null, victim);
     return;
   });
-}
+};
 
 Game.prototype.doctorsAction = function doctorsAction() {
   var self = this;
@@ -241,7 +247,7 @@ Game.prototype.doctorsAction = function doctorsAction() {
     }
     self.doNextAction();
   });
-}
+};
 
 Game.prototype.werewolvesAction = function werewolvesAction() {
   var self = this;
@@ -310,7 +316,7 @@ Game.prototype.dawnOfDeathAction = function dawnOfDeathAction() {
 Game.prototype.setNightAction = function setNightAction() {
   this.everyone.forEach(function(p) {
     p.socket.emit("game event", {
-      type: "timechange",
+      type: "timechange",P
       time: "night"
     });
   });
@@ -365,7 +371,5 @@ Game.prototype.voteAction = function voteAction() {
     self.doNextAction();
   });
 };
-
-
 
 module.exports = Game;
