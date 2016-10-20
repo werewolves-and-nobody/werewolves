@@ -1,7 +1,5 @@
 "use strict";
-
 var assert = require("assert");
-var async = require("async");
 var Game = require('../game.js');
 
 var genTestSockets = function genTestSockets(emitter, receiver) {
@@ -102,7 +100,6 @@ describe("new Game()", function() {
     var p1 = createRandomPlayer("p1");
     var p2 = createRandomPlayer("p2");
     var p3 = createRandomPlayer("p3");
-    var werewolf = null;
 
     var game = new Game(3);
     // Stub the automatic flow.
@@ -153,7 +150,7 @@ describe("new Game()", function() {
 
     it("should register werewolves vote on existing player", function(done) {
       var werewolf = game.getPlayersByRole('werewolf')[0];
-      var nobody = game.getPlayersByRole('nobody')[0]
+      var nobody = game.getPlayersByRole('nobody')[0];
       werewolf.socket.ons[game.getCurrentIdentifier()](nobody.name);
 
       assert.equal(werewolf.socket.emits[0].type, "ack");
@@ -191,7 +188,7 @@ describe("new Game()", function() {
     });
 
     it("should kill the loser", function(done) {
-      var nobody = game.getPlayersByRole('nobody')[0]
+      var nobody = game.getPlayersByRole('nobody')[0];
       game.advanceUntilAction("dawnOfDeathAction");
      
       // Player not game.getPlayersByRole('werewolf')[0] should now be dead
@@ -204,8 +201,8 @@ describe("new Game()", function() {
     it("should ask survivors to vote for an existing player", function(done) {
       game.advanceUntilAction("voteAction");
 
-      var werewolf = game.getPlayersByRole('werewolf')[0]
-      var doctor = game.getPlayersByRole('doctor')[0]
+      var werewolf = game.getPlayersByRole('werewolf')[0];
+      var doctor = game.getPlayersByRole('doctor')[0];
 
       assert.equal(werewolf.socket.emits[0].type, "rfa");
       assert.equal(doctor.socket.emits[0].type, "rfa");
@@ -223,8 +220,8 @@ describe("new Game()", function() {
     it("should hang the player they're voting for", function(done) {
       game.advanceUntilAction("voteAction");
 
-      var werewolf = game.getPlayersByRole('werewolf')[0]
-      var doctor = game.getPlayersByRole('doctor')[0]
+      var werewolf = game.getPlayersByRole('werewolf')[0];
+      var doctor = game.getPlayersByRole('doctor')[0];
 
       assert.equal(werewolf.socket.emits[0].type, "rfa");
       assert.equal(doctor.socket.emits[0].type, "rfa");
