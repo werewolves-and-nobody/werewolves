@@ -30,7 +30,6 @@
     "requireLineFeedAtFileEnd": true,
     "requireDotNotation": true,
 
-    "validateLineBreaks": "LF",
     "validateParameterSeparator": ", ",
     "validateIndentation": 2,
 

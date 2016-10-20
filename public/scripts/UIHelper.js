@@ -1,6 +1,4 @@
-/* global $ */
-/* global module */
-/* global window */
+/* global $ module window */
 (function() {
   'use strict';
   var UIHelper = function UIHelper() {

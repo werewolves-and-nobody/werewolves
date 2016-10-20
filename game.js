@@ -13,9 +13,9 @@ function getRandomInt(min, max) {
 }
 
 var noopCb = function noopCb(err) {
-  if (err) {
+  if(err) {
     console.error(err);
-  }   
+  }
 };
 
 
@@ -52,7 +52,7 @@ Game.prototype.getCurrentIdentifier = function getCurrentIdentifier() {
 };
 
 Game.prototype.canStartGame = function canStartGame() {
-  return this.players.length == this.numPlayers;
+  return this.players.length === this.numPlayers;
 };
 
 Game.prototype.addPlayer = function addPlayer(player) {
@@ -63,7 +63,7 @@ Game.prototype.addPlayer = function addPlayer(player) {
     type: "joined",
     msg: "Joined game matchmaking"
   });
-};    
+};
 
 Game.prototype.canStartGame = function canStartGame() {
   return this.players.length === this.numPlayers;
@@ -76,14 +76,14 @@ Game.prototype.assignRoles = function assignRoles(players, roles) {
       name: ROLE_WEREWOLF,
       min: 1,
       max: Math.ceil(totalPlayers / 4)
-    }, 
+    },
     {
       name: ROLE_DOCTOR,
       min: 1,
       max: 1
     }
   ];
-    
+
   // default all to nobody
   debug(`Resetting all roles to NOBODY`);
   players.forEach(function(p) {
@@ -102,7 +102,7 @@ Game.prototype.assignRoles = function assignRoles(players, roles) {
       players[index].role = role.name;
       debug(`${players[index].name} is a ${role.name}`);
       index += 1;
-    };
+    }
   });
 };
 
@@ -162,12 +162,12 @@ Game.prototype.doNextAction = function doNextAction() {
   return nextAction;
 };
 
-Game.prototype.notifyRfa = function notifyRfa(role, display, choices, cb) { 
+Game.prototype.notifyRfa = function notifyRfa(role, display, choices, cb) {
   var self = this;
   cb = cb || noopCb;
   var identifier = self.getCurrentIdentifier();
   var players = self.players;
-  if (role !== '*') {
+  if(role !== '*') {
     players = self.getPlayersByRole(role);
   }
   debug(`Notifying ${role}, ${display.description}`);
@@ -213,11 +213,11 @@ Game.prototype.notifyRfa = function notifyRfa(role, display, choices, cb) {
 
     if(!victim) {
       debug("${role} failed to pick, starting again.");
-      self.notifyRfa(role, 
+      self.notifyRfa(role,
         {
-          title: display.title, 
+          title: display.title,
           description: "Invalid You have to choose the same person. <br />Persons voted: " + responses.join(", ")
-        }, 
+        },
         choices, cb);
       return;
     }
@@ -234,15 +234,15 @@ Game.prototype.doctorsAction = function doctorsAction() {
     return p.name;
   });
 
-  self.notifyRfa(ROLE_DOCTOR, 
+  self.notifyRfa(ROLE_DOCTOR,
     {
-      title: "Heal someone", 
+      title: "Heal someone",
       description: "Pick someone and save them tonight"
-    }, 
-    players, 
+    },
+    players,
   function(err, choice) {
     var index = self.victims.indexOf(choice);
-    if (index !== -1) {
+    if(index !== -1) {
       self.victims.splice(self.victims.indexOf(choice), 1);
     }
     self.doNextAction();
@@ -256,12 +256,12 @@ Game.prototype.werewolvesAction = function werewolvesAction() {
     return p.name;
   });
 
-  self.notifyRfa(ROLE_WEREWOLF, 
+  self.notifyRfa(ROLE_WEREWOLF,
     {
-      title: "Eat someone", 
+      title: "Eat someone",
       description: "It's time to eat, who do you want to kill?"
-    }, 
-    players, 
+    },
+    players,
   function(err, choice) {
     choice.causeOfDeath = "Eaten by werewolves.";
     self.victims.push(choice);
@@ -316,7 +316,7 @@ Game.prototype.dawnOfDeathAction = function dawnOfDeathAction() {
 Game.prototype.setNightAction = function setNightAction() {
   this.everyone.forEach(function(p) {
     p.socket.emit("game event", {
-      type: "timechange",P
+      type: "timechange",
       time: "night"
     });
   });
@@ -341,15 +341,15 @@ Game.prototype.voteAction = function voteAction() {
   var players = self.players.map(function(p) {
     return p.name;
   });
-  
-  debug("Time to vote");  
 
-  self.notifyRfa('*', 
+  debug("Time to vote");
+
+  self.notifyRfa('*',
     {
-      title: "Hang someone", 
+      title: "Hang someone",
       description: "Decide who of the town shall hang today?"
-    }, 
-    players, 
+    },
+    players,
   function(err, choice) {
 
     self.players.forEach(function(p) {
