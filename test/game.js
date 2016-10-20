@@ -39,12 +39,12 @@ var genTestPlayer = function(name, socket) {
 };
 
 var createRandomPlayer = function(name) {
-  name = name || Math.random().toString(36).substring(7)
+  name = name || Math.random().toString(36).substring(7);
   return {
     name: name,
     socket: genTestSockets()
-  }
-}
+  };
+};
 
 describe("new Game()", function() {
   describe("addPlayer()", function() {
@@ -190,7 +190,7 @@ describe("new Game()", function() {
     it("should kill the loser", function(done) {
       var nobody = game.getPlayersByRole('nobody')[0];
       game.advanceUntilAction("dawnOfDeathAction");
-     
+
       // Player not game.getPlayersByRole('werewolf')[0] should now be dead
       assert.equal(nobody.socket.emits[0].type, "killed");
       assert.equal(nobody.socket.emits[1].type, "death");
