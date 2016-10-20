@@ -1,7 +1,5 @@
 "use strict";
-
 var assert = require("assert");
-var async = require("async");
 var Game = require('../game.js');
 
 var genTestSockets = function genTestSockets(emitter, receiver) {
@@ -40,6 +38,14 @@ var genTestPlayer = function(name, socket) {
   };
 };
 
+var createRandomPlayer = function(name) {
+  name = name || Math.random().toString(36).substring(7);
+  return {
+    name: name,
+    socket: genTestSockets()
+  };
+};
+
 describe("new Game()", function() {
   describe("addPlayer()", function() {
     it("should emit matchmaking event on join", function(done) {
@@ -56,30 +62,44 @@ describe("new Game()", function() {
   });
 
   describe("startGame()", function() {
-    it("should affect role to everyone, with at least one werewolf", function(done) {
-      var game = new Game(1);
+    it("should give a role to everyone, with at least one werewolf", function(done) {
+      var game = new Game(5);
 
-      var stub = genTestSockets(function(type, msg) {
-        if(msg.type === "start") {
-          assert.equal(msg.role, "werewolf");
-          assert.deepEqual(msg.players, ["test"]);
-          done();
-        }
-      });
+      game.addPlayer(createRandomPlayer());
+      game.addPlayer(createRandomPlayer());
+      game.addPlayer(createRandomPlayer());
+      game.addPlayer(createRandomPlayer());
+      game.addPlayer(createRandomPlayer());
 
-      var player = genTestPlayer("test", stub);
-      game.addPlayer(player);
       assert.ok(game.canStartGame());
 
-      game.startGame();
+      game.startGame(function() {
+        assert.ok(game.getPlayersByRole('werewolf').length > 0, "Werewolf role not assigned");
+        done();
+      });
+    });
+    it("should give a role to everyone, with at least one doctor", function(done) {
+      var game = new Game(5);
+
+      game.addPlayer(createRandomPlayer());
+      game.addPlayer(createRandomPlayer());
+      game.addPlayer(createRandomPlayer());
+      game.addPlayer(createRandomPlayer());
+      game.addPlayer(createRandomPlayer());
+
+      assert.ok(game.canStartGame());
+
+      game.startGame(function() {
+        assert.ok(game.getPlayersByRole('doctor').length > 0, "Doctor role not assigned");
+        done();
+      });
     });
   });
 
   describe("Game flow", function() {
-    var p1 = genTestPlayer("p1", genTestSockets());
-    var p2 = genTestPlayer("p2", genTestSockets());
-    var p3 = genTestPlayer("p3", genTestSockets());
-    var werewolf = null;
+    var p1 = createRandomPlayer("p1");
+    var p2 = createRandomPlayer("p2");
+    var p3 = createRandomPlayer("p3");
 
     var game = new Game(3);
     // Stub the automatic flow.
@@ -96,36 +116,29 @@ describe("new Game()", function() {
     game.addPlayer(p3);
 
     assert.ok(game.canStartGame());
-    it("should have one werewolf", function(done) {
-      async.each([p1, p2, p3], function(p, cb) {
-        p.socket.stubEmitter = function(type, msg) {
-          if(msg.type === "start") {
-            if(msg.role === "werewolf") {
-              werewolf = p;
-            }
-            cb();
-          }
-        };
-      }, function() {
-        if(!werewolf) {
-          throw new Error("No werewolves detected.");
-        }
 
+    it("should have one each of nobody, werewolf and doctor", function(done) {
+      assert.ok(game.canStartGame());
+
+      game.startGame(function() {
+        assert.ok(game.getPlayersByRole('doctor').length === 1, "Doctor role not assigned");
+        assert.ok(game.getPlayersByRole('werewolf').length === 1, "Werewolf role not assigned");
+        assert.ok(game.getPlayersByRole('nobody').length === 1, "Nobody role not assigned");
         done();
       });
-
-      game.startGame();
     });
 
-    it("should ask the werewolf to vote for someone", function(done) {
+    it("should ask the werewolf to vote for a player", function(done) {
       game.advanceUntilAction("werewolvesAction");
 
-      assert.equal(werewolf.socket.emits[0].type, "rfa");
-      assert.equal((werewolf === p1 ? p2 : p1).socket.emits[0].type, "timechange"); // should've just gone night
+      assert.equal(game.getPlayersByRole('werewolf')[0].socket.emits[0].type, "rfa");
+      assert.equal(game.getPlayersByRole('doctor')[0].socket.emits[0].type, "timechange");
+      assert.equal(game.getPlayersByRole('nobody')[0].socket.emits[0].type, "timechange");
       done();
     });
 
     it("should ensure the werewolf vote for an existing player", function(done) {
+      var werewolf = game.getPlayersByRole('werewolf')[0];
       werewolf.socket.ons[game.getCurrentIdentifier()]("doesnotexist");
 
       // Should have been acknowledged, and asked again
@@ -135,21 +148,52 @@ describe("new Game()", function() {
       done();
     });
 
-
-    it("should register vote on existing player", function(done) {
-      werewolf.socket.ons[game.getCurrentIdentifier()](werewolf === p1 ? p2.name : p1.name);
+    it("should register werewolves vote on existing player", function(done) {
+      var werewolf = game.getPlayersByRole('werewolf')[0];
+      var nobody = game.getPlayersByRole('nobody')[0];
+      werewolf.socket.ons[game.getCurrentIdentifier()](nobody.name);
 
       assert.equal(werewolf.socket.emits[0].type, "ack");
       assert.equal(werewolf.socket.emits[1].type, "rfa");
       done();
     });
 
+    it("should ask the doctor to vote for a player", function(done) {
+      game.advanceUntilAction("doctorsAction");
+
+      assert.equal(game.getPlayersByRole('werewolf')[0].socket.emits[0].type, "ack");
+      assert.equal(game.getPlayersByRole('doctor')[0].socket.emits[0].type, "rfa");
+      assert.equal(game.getPlayersByRole('nobody')[0].socket.emits[0].type, "timechange");
+      done();
+    });
+
+    it("should ensure the doctor vote for an existing player", function(done) {
+      var doctor = game.getPlayersByRole('doctor')[0];
+      doctor.socket.ons[game.getCurrentIdentifier()]("doesnotexist");
+
+      // Should have been acknowledged, and asked again
+      assert.equal(doctor.socket.emits[0].type, "rfa");
+      assert.equal(doctor.socket.emits[1].type, "ack");
+      assert.equal(doctor.socket.emits[2].type, "rfa");
+      done();
+    });
+
+    it("should register doctors vote on existing player", function(done) {
+      var doctor = game.getPlayersByRole('doctor')[0];
+      doctor.socket.ons[game.getCurrentIdentifier()](doctor.name); // save himself
+
+      assert.equal(doctor.socket.emits[0].type, "ack");
+      assert.equal(doctor.socket.emits[1].type, "rfa");
+      done();
+    });
+
     it("should kill the loser", function(done) {
+      var nobody = game.getPlayersByRole('nobody')[0];
       game.advanceUntilAction("dawnOfDeathAction");
 
-      // Player not werewolf should now be dead
-      assert.equal((werewolf === p1 ? p2 : p1).socket.emits[0].type, "killed");
-      assert.equal((werewolf === p1 ? p2 : p1).socket.emits[1].type, "death");
+      // Player not game.getPlayersByRole('werewolf')[0] should now be dead
+      assert.equal(nobody.socket.emits[0].type, "killed");
+      assert.equal(nobody.socket.emits[1].type, "death");
 
       done();
     });
@@ -157,16 +201,18 @@ describe("new Game()", function() {
     it("should ask survivors to vote for an existing player", function(done) {
       game.advanceUntilAction("voteAction");
 
-      // Everyone else should be voting
-      assert.equal((werewolf === p1 ? p1 : p2).socket.emits[0].type, "rfa");
-      assert.equal(p3.socket.emits[0].type, "rfa");
+      var werewolf = game.getPlayersByRole('werewolf')[0];
+      var doctor = game.getPlayersByRole('doctor')[0];
 
-      p3.socket.ons[game.getCurrentIdentifier()]("trump");
-      (werewolf === p1 ? p1 : p2).socket.ons[game.getCurrentIdentifier()]("trump");
+      assert.equal(werewolf.socket.emits[0].type, "rfa");
+      assert.equal(doctor.socket.emits[0].type, "rfa");
+
+      werewolf.socket.ons[game.getCurrentIdentifier()]("trump");
+      doctor.socket.ons[game.getCurrentIdentifier()]("trump");
 
       process.nextTick(function() {
-        assert.equal(p3.socket.emits[0].type, "rfa");
-        assert.ok(p3.socket.emits[0].description.indexOf("morons") !== -1);
+        assert.equal(doctor.socket.emits[0].type, "rfa");
+        assert.ok(doctor.socket.emits[0].description.indexOf("morons") !== -1);
         done();
       });
     });
@@ -174,17 +220,19 @@ describe("new Game()", function() {
     it("should hang the player they're voting for", function(done) {
       game.advanceUntilAction("voteAction");
 
-      // Everyone should be voting
-      assert.equal((werewolf === p1 ? p1 : p2).socket.emits[0].type, "rfa");
-      assert.equal(p3.socket.emits[0].type, "rfa");
+      var werewolf = game.getPlayersByRole('werewolf')[0];
+      var doctor = game.getPlayersByRole('doctor')[0];
 
-      p3.socket.ons[game.getCurrentIdentifier()](p3.name);
-      (werewolf === p1 ? p1 : p2).socket.ons[game.getCurrentIdentifier()](p3.name);
+      assert.equal(werewolf.socket.emits[0].type, "rfa");
+      assert.equal(doctor.socket.emits[0].type, "rfa");
+
+      werewolf.socket.ons[game.getCurrentIdentifier()](doctor.name);
+      doctor.socket.ons[game.getCurrentIdentifier()](doctor.name);
 
       process.nextTick(function() {
         game.advanceUntilAction("killVictimsAction");
 
-        assert.equal(p3.socket.emits[0].type, "death");
+        assert.equal(doctor.socket.emits[0].type, "death");
         done();
       });
     });
@@ -192,7 +240,7 @@ describe("new Game()", function() {
     it("should display the winner of the game", function(done) {
       game.realDoNextAction();
 
-      assert.equal((werewolf === p1 ? p1 : p2).socket.emits[0].type, "win");
+      assert.equal(game.getPlayersByRole('werewolf')[0].socket.emits[0].type, "win");
 
       done();
     });

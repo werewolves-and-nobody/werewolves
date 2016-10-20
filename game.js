@@ -12,6 +12,12 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+var noopCb = function noopCb(err) {
+  if(err) {
+    console.error(err);
+  }
+};
+
 
 var Game = function Game(numPlayers) {
   this.players = [];
@@ -36,10 +42,10 @@ Game.prototype.addPlayer = function addPlayer(player) {
     type: "joined",
     msg: "Joined game matchmaking"
   });
-};    
+};
 
 Game.prototype.canStartGame = function canStartGame() {
-  return this.players.length >= this.numPlayers;
+  return this.players.length === this.numPlayers;
 };
 
 Game.prototype.assignRoles = function assignRoles(players, roles) {
@@ -49,7 +55,7 @@ Game.prototype.assignRoles = function assignRoles(players, roles) {
       name: ROLE_WEREWOLF,
       min: 1,
       max: Math.ceil(totalPlayers / 4)
-    }, 
+    },
     {
       name: ROLE_DOCTOR,
       min: 1,
@@ -57,7 +63,9 @@ Game.prototype.assignRoles = function assignRoles(players, roles) {
     }
   ];
 
+
   // default all to nobody
+  debug(`Resetting all roles to NOBODY`);
   players.forEach(function(p) {
     p.role = ROLE_NOBODY;
   });
@@ -67,16 +75,19 @@ Game.prototype.assignRoles = function assignRoles(players, roles) {
 
   roles.forEach(function(role) {
     var numRoles = getRandomInt(role.min, role.max);
+    debug(`assigning ${numRoles} ${role.name}s`);
 
     while (numRoles > 0) {
-      numRoles--;
+      numRoles -= 1;
       players[index].role = role.name;
-      index++;
-    };
+      debug(`${players[index].name} is a ${role.name}`);
+      index += 1;
+    }
   });
-}
+};
 
-Game.prototype.startGame = function startGame() {
+Game.prototype.startGame = function startGame(cb) {
+  cb = cb || noopCb;
   this.currentAction = -1;
   this.currentDay = 0;
   this.victims = [];
@@ -99,10 +110,10 @@ Game.prototype.startGame = function startGame() {
   });
 
   this.doNextAction();
-
+  cb();
 };
 
-Game.prototype.getRoles = function getRoles(role) {
+Game.prototype.getPlayersByRole = function getPlayersByRole(role) {
   return this.players.filter(function(p) {
     return p.role === role;
   });
@@ -127,7 +138,7 @@ Game.prototype.doNextAction = function doNextAction(err) {
 
   this.currentAction += 1;
 
-  var werewolvesCount = this.getRoles(ROLE_WEREWOLF).length;
+  var werewolvesCount = this.getPlayersByRole(ROLE_WEREWOLF).length;
 
   if(this.players.length === 1 || werewolvesCount === 0 ||  werewolvesCount === this.players.length) {
     this.players.forEach(function(p) {
@@ -153,9 +164,10 @@ Game.prototype.doNextAction = function doNextAction(err) {
   return nextAction;
 };
 
-Game.prototype.notifyRfa = function notifyRfa(role, title, description, choices, cb) { 
+Game.prototype.notifyRfa = function notifyRfa(role, title, description, choices, cb) {
+  var self = this;
   var identifier = self.getCurrentIdentifier();
-  var players = self.getRoles(role);
+  var players = self.getPlayersByRole(role);
   debug(`Notifying ${role}, ${description}`);
 
   async.map(players, function(player, cb) {
@@ -185,14 +197,16 @@ Game.prototype.notifyRfa = function notifyRfa(role, title, description, choices,
 
       if(!allEqual || !victim) {
         debug("${role} failed to pick, starting again.");
-        this.notifyRfa(role, title, "You have to choose the same person. Persons voted: " + responses.join(", "), choices);
+        self.notifyRfa(role,
+          title, "You have to choose the same person. Persons voted: " + responses.join(", "),
+          choices, cb);
         return;
       }
 
       cb(null, victim);
       return;
     });
-}
+};
 
 Game.prototype.doctorsAction = function doctorsAction() {
   var self = this;
@@ -201,20 +215,23 @@ Game.prototype.doctorsAction = function doctorsAction() {
     return p.name;
   });
 
-  self.notifyRfa(ROLE_DOCTOR, 
-    "Heal someone", 
-    "Pick someone and save them tonight", 
-    players, 
+  self.notifyRfa(ROLE_DOCTOR,
+    "Heal someone",
+    "Pick someone and save them tonight",
+    players,
   function(err, choice) {
-    self.victims.splice(self.victims.indexOf(choice), 1);
+    var index = self.victims.indexOf(choice);
+    if(index !== -1) {
+      self.victims.splice(self.victims.indexOf(choice), 1);
+    }
     self.doNextAction();
   });
-}
+};
 
 Game.prototype.werewolvesAction = function werewolvesAction() {
   var self = this;
   var notifyWerewolves = function notifyWerewolves(description) {
-    var werewolves = self.getRoles(ROLE_WEREWOLF);
+    var werewolves = self.getPlayersByRole(ROLE_WEREWOLF);
     var identifier = self.getCurrentIdentifier();
     debug("Notifying werewolves, time to eat");
     async.map(werewolves, function(werewolf, cb) {
@@ -249,7 +266,7 @@ Game.prototype.werewolvesAction = function werewolvesAction() {
         notifyWerewolves("Please ensure you all eat the same person. Thanks. Persons voted: " + msgs.join(", "));
         return;
       }
-     victim.causeOfDeath = "Eaten by werewolves.";
+      victim.causeOfDeath = "Eaten by werewolves.";
       self.victims.push(victim);
       self.doNextAction();
 
