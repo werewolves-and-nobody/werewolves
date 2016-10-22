@@ -209,9 +209,9 @@ Game.prototype.notifyRfa = function notifyRfa(role, display, choices, cb) {
       return currCandidate;
     }, null);
 
-    victim = self.getPlayerByName(victim);
+    var isPlayer = self.getPlayerByName(victim);
 
-    if(!victim) {
+    if(!isPlayer) {
       debug("${role} failed to pick, starting again.");
       self.notifyRfa(role,
         {
@@ -241,9 +241,11 @@ Game.prototype.doctorsAction = function doctorsAction() {
     },
     players,
   function(err, choice) {
-    var index = self.victims.indexOf(choice);
+    var victim = self.getPlayerByName(choice);
+
+    var index = self.victims.indexOf(victim);
     if(index !== -1) {
-      self.victims.splice(self.victims.indexOf(choice), 1);
+      self.victims.splice(self.victims.indexOf(victim), 1);
     }
     self.doNextAction();
   });
@@ -263,8 +265,10 @@ Game.prototype.werewolvesAction = function werewolvesAction() {
     },
     players,
   function(err, choice) {
-    choice.causeOfDeath = "Eaten by werewolves.";
-    self.victims.push(choice);
+    var victim = self.getPlayerByName(choice);
+
+    victim.causeOfDeath = "Eaten by werewolves.";
+    self.victims.push(victim);
     self.doNextAction();
   });
 };
@@ -351,23 +355,24 @@ Game.prototype.voteAction = function voteAction() {
     },
     players,
   function(err, choice) {
+    var victim = self.getPlayerByName(choice);
 
     self.players.forEach(function(p) {
       p.socket.emit("game event", {
         type: "vote",
-        msg: "End of vote, village picked " + choice.name + "."
+        msg: "End of vote, village picked " + victim.name + "."
       });
     });
 
     self.everyone.forEach(function(p) {
       p.socket.emit("game event", {
         type: "killed",
-        killed: [{name: choice.name, role: choice.role}],
+        killed: [{name: victim.name, role: victim.role}],
       });
     });
 
-    choice.causeOfDeath = "Hung by the town.";
-    self.victims.push(choice);
+    victim.causeOfDeath = "Hung by the town.";
+    self.victims.push(victim);
     self.doNextAction();
   });
 };
