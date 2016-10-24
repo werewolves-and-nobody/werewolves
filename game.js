@@ -355,6 +355,9 @@ Game.prototype.voteAction = function voteAction() {
     },
     players,
   function(err, choice) {
+    if(err) {
+      throw new Error("Error returned from notifyRfa");
+    }
     var victim = self.getPlayerByName(choice);
 
     self.players.forEach(function(p) {
