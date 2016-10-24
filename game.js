@@ -34,6 +34,27 @@ Game.prototype.actions = [
   "killVictimsAction",
 ];
 
+
+Game.prototype.getPlayersByRole = function getPlayersByRole(role) {
+  return this.players.filter(function(p) {
+    return p.role === role;
+  });
+};
+
+Game.prototype.getPlayerByName = function getPlayerByName(name) {
+  return this.players.find(function(p) {
+    return p.name.toLowerCase() === name.toLowerCase();
+  });
+};
+
+Game.prototype.getCurrentIdentifier = function getCurrentIdentifier() {
+  return this.currentDay + "-" + this.currentAction;
+};
+
+Game.prototype.canStartGame = function canStartGame() {
+  return this.players.length === this.numPlayers;
+};
+
 Game.prototype.addPlayer = function addPlayer(player) {
   debug("Adding new player to pool: " + player.name);
   this.players.push(player);
@@ -62,7 +83,6 @@ Game.prototype.assignRoles = function assignRoles(players, roles) {
       max: 1
     }
   ];
-
 
   // default all to nobody
   debug(`Resetting all roles to NOBODY`);
@@ -113,29 +133,7 @@ Game.prototype.startGame = function startGame(cb) {
   cb();
 };
 
-Game.prototype.getPlayersByRole = function getPlayersByRole(role) {
-  return this.players.filter(function(p) {
-    return p.role === role;
-  });
-};
-
-Game.prototype.getPlayerByName = function getPlayerByName(name) {
-  return this.players.find(function(p) {
-    return p.name.toLowerCase() === name.toLowerCase();
-  });
-};
-
-Game.prototype.getCurrentIdentifier = function getCurrentIdentifier() {
-  return this.currentDay + "-" + this.currentAction;
-};
-
-
-
-Game.prototype.doNextAction = function doNextAction(err) {
-  if(err) {
-    throw err;
-  }
-
+Game.prototype.doNextAction = function doNextAction() {
   this.currentAction += 1;
 
   var werewolvesCount = this.getPlayersByRole(ROLE_WEREWOLF).length;
@@ -164,17 +162,21 @@ Game.prototype.doNextAction = function doNextAction(err) {
   return nextAction;
 };
 
-Game.prototype.notifyRfa = function notifyRfa(role, title, description, choices, cb) {
+Game.prototype.notifyRfa = function notifyRfa(role, display, choices, cb) {
   var self = this;
+  cb = cb || noopCb;
   var identifier = self.getCurrentIdentifier();
-  var players = self.getPlayersByRole(role);
-  debug(`Notifying ${role}, ${description}`);
+  var players = self.players;
+  if(role !== '*') {
+    players = self.getPlayersByRole(role);
+  }
+  debug(`Notifying ${role}, ${display.description}`);
 
   async.map(players, function(player, cb) {
     player.socket.emit("game event", {
       type: "rfa",
-      title: title,
-      description: description,
+      title: display.title,
+      description: display.description,
       choices: choices,
       identifier: identifier
     });
@@ -189,23 +191,40 @@ Game.prototype.notifyRfa = function notifyRfa(role, title, description, choices,
       cb(null, msg);
     });
   }, function(err, responses) {
-      var allEqual = responses.every(function(response) {
-        return response === responses[0];
-      });
-
-      var victim = self.getPlayerByName(responses[0]);
-
-      if(!allEqual || !victim) {
-        debug("${role} failed to pick, starting again.");
-        self.notifyRfa(role,
-          title, "You have to choose the same person. Persons voted: " + responses.join(", "),
-          choices, cb);
-        return;
+    var candidates = {};
+    responses.forEach(function(m) {
+      if(!candidates[m]) {
+        candidates[m] = 0;
       }
 
-      cb(null, victim);
-      return;
+      candidates[m] += 1;
     });
+
+    debug("Built candidates: ", candidates);
+
+    var victim = Object.keys(candidates).reduce(function(c, currCandidate) {
+      if(currCandidate === null || candidates[currCandidate] < candidates[c]) {
+        return c;
+      }
+      return currCandidate;
+    }, null);
+
+    var isPlayer = self.getPlayerByName(victim);
+
+    if(!isPlayer) {
+      debug("${role} failed to pick, starting again.");
+      self.notifyRfa(role,
+        {
+          title: display.title,
+          description: "Invalid You have to choose the same person. <br />Persons voted: " + responses.join(", ")
+        },
+        choices, cb);
+      return;
+    }
+
+    cb(null, victim);
+    return;
+  });
 };
 
 Game.prototype.doctorsAction = function doctorsAction() {
@@ -216,13 +235,17 @@ Game.prototype.doctorsAction = function doctorsAction() {
   });
 
   self.notifyRfa(ROLE_DOCTOR,
-    "Heal someone",
-    "Pick someone and save them tonight",
+    {
+      title: "Heal someone",
+      description: "Pick someone and save them tonight"
+    },
     players,
   function(err, choice) {
-    var index = self.victims.indexOf(choice);
+    var victim = self.getPlayerByName(choice);
+
+    var index = self.victims.indexOf(victim);
     if(index !== -1) {
-      self.victims.splice(self.victims.indexOf(choice), 1);
+      self.victims.splice(self.victims.indexOf(victim), 1);
     }
     self.doNextAction();
   });
@@ -230,50 +253,24 @@ Game.prototype.doctorsAction = function doctorsAction() {
 
 Game.prototype.werewolvesAction = function werewolvesAction() {
   var self = this;
-  var notifyWerewolves = function notifyWerewolves(description) {
-    var werewolves = self.getPlayersByRole(ROLE_WEREWOLF);
-    var identifier = self.getCurrentIdentifier();
-    debug("Notifying werewolves, time to eat");
-    async.map(werewolves, function(werewolf, cb) {
-      werewolf.socket.emit("game event", {
-        type: "rfa",
-        title: "Eat someone",
-        description: description,
-        choices: self.players.map(function(p) {
-          return p.name;
-        }),
-        identifier: identifier
-      });
 
-      werewolf.socket.once(identifier, function(msg) {
-        debug("Eating: " + msg);
+  var players = self.players.map(function(p) {
+    return p.name;
+  });
 
-        werewolf.socket.emit("game event", {
-          type: "ack",
-          msg: "You're eating " + msg
-        });
-        cb(null, msg);
-      });
-    }, function(err, msgs) {
-      var allEqual = msgs.every(function(msg) {
-        return msg === msgs[0];
-      });
+  self.notifyRfa(ROLE_WEREWOLF,
+    {
+      title: "Eat someone",
+      description: "It's time to eat, who do you want to kill?"
+    },
+    players,
+  function(err, choice) {
+    var victim = self.getPlayerByName(choice);
 
-      var victim = self.getPlayerByName(msgs[0]);
-
-      if(!allEqual || !victim) {
-        debug("Quorum failed. Trying again.");
-        notifyWerewolves("Please ensure you all eat the same person. Thanks. Persons voted: " + msgs.join(", "));
-        return;
-      }
-      victim.causeOfDeath = "Eaten by werewolves.";
-      self.victims.push(victim);
-      self.doNextAction();
-
-    });
-  };
-
-  notifyWerewolves("EAT SOMEONE OM NOM");
+    victim.causeOfDeath = "Eaten by werewolves.";
+    self.victims.push(victim);
+    self.doNextAction();
+  });
 };
 
 Game.prototype.killVictimsAction = function() {
@@ -345,78 +342,42 @@ Game.prototype.setDayAction = function setDayAction() {
 Game.prototype.voteAction = function voteAction() {
   var self = this;
 
-  function notifyVote(description) {
-    var identifier = self.getCurrentIdentifier();
-    debug("Time to vote");
-    async.map(self.players, function(player, cb) {
-      player.socket.emit("game event", {
-        type: "rfa",
-        description: description,
-        choices: self.players.map(function(p) {
-          return p.name;
-        }),
-        identifier: identifier
+  var players = self.players.map(function(p) {
+    return p.name;
+  });
+
+  debug("Time to vote");
+
+  self.notifyRfa('*',
+    {
+      title: "Hang someone",
+      description: "Decide who of the town shall hang today?"
+    },
+    players,
+  function(err, choice) {
+    if(err) {
+      throw new Error("Error returned from notifyRfa");
+    }
+    var victim = self.getPlayerByName(choice);
+
+    self.players.forEach(function(p) {
+      p.socket.emit("game event", {
+        type: "vote",
+        msg: "End of vote, village picked " + victim.name + "."
       });
-
-      player.socket.once(identifier, function(msg) {
-        debug("Voting: " + msg);
-
-        player.socket.emit("game event", {
-          type: "ack",
-          msg: "You voted for " + msg
-        });
-        cb(null, msg);
-      });
-    }, function(err, msgs) {
-      var candidates = {};
-      msgs.forEach(function(m) {
-        if(!candidates[m]) {
-          candidates[m] = 0;
-        }
-
-        candidates[m] += 1;
-      });
-
-      debug("Built candidates: ", candidates);
-
-      var victim = Object.keys(candidates).reduce(function(c, currCandidate) {
-        if(currCandidate === null || candidates[currCandidate] < candidates[c]) {
-          return c;
-        }
-        return currCandidate;
-      }, null);
-
-      victim = self.getPlayerByName(victim);
-
-      if(!victim) {
-        debug("Invalid vote");
-        notifyVote("U fucking morons vote for someone in your village");
-        return;
-      }
-
-      self.players.forEach(function(p) {
-        p.socket.emit("game event", {
-          type: "vote",
-          msg: "End of vote, village picked " + victim.name + "."
-        });
-      });
-      self.everyone.forEach(function(p) {
-        p.socket.emit("game event", {
-          type: "killed",
-          killed: [{name: victim.name, role: victim.role}],
-        });
-      });
-
-      victim.causeOfDeath = "Hung by town.";
-      self.victims.push(victim);
-
-      self.doNextAction();
     });
-  }
 
-  notifyVote("Vote to hang someone");
+    self.everyone.forEach(function(p) {
+      p.socket.emit("game event", {
+        type: "killed",
+        killed: [{name: victim.name, role: victim.role}],
+      });
+    });
+
+    victim.causeOfDeath = "Hung by the town.";
+    self.victims.push(victim);
+    self.doNextAction();
+  });
 };
-
-
 
 module.exports = Game;

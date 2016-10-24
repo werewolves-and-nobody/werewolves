@@ -212,7 +212,7 @@ describe("new Game()", function() {
 
       process.nextTick(function() {
         assert.equal(doctor.socket.emits[0].type, "rfa");
-        assert.ok(doctor.socket.emits[0].description.indexOf("morons") !== -1);
+        assert.ok(doctor.socket.emits[0].description.indexOf("Invalid") !== -1);
         done();
       });
     });
