@@ -15,62 +15,44 @@ ul {
    margin-left: 18px;
 }
 
-/* General box styles */
-.box-head {
-    font-size: 13pt;
-    font-weight: 600;
-    margin-bottom: 5px;
+div#chat-box {
+  background-color: grey;
+  width: 100%;
+  height: 350px;
 }
-.box-body {
-   font-size: 11pt;
+input[type=text].chat-input {
+  width: 90%;
 }
-
-.box-style {
-   border-radius: 2px;
-   display: inline-block;
-   box-shadow: 0 2px 10px rgba(0,0,0,0.19), 0 1px 2px rgba(0,0,0,0.23);
-   border: solid 1px rgba(128, 128, 128, 0.18);
-   background-color: #FFF;
+input[type=submit].chat-send {
+  padding: 3px;
+  width: 85px;
+  height: 26px;
 }
 
-/* Left column */
-.left-main-box {
-  float: left;
+input[type=text] {
+  display: inline-block;
+  font-size: 1em;
+  height: 1.8em;
+  margin: 10px auto;
+  padding: 1px 5px;
+}
+
+#events {
   position: absolute;
-  margin: 0;
-  padding: 0;
-  width: 74%;
-  height: 100%;
-  min-height: 700px;
-  min-width: 1000px;
+  top: 10px;
+  left: 200px;
+  background-color: rgba(0,0,0,1);
 }
+
 
 .list-of-deaths {
   display: block;
   float: left;
-  min-width: 250px;
+  width: 350px;
   padding: 10px;
-  margin-top: 30px;
-  margin-left: 50px;
   height: 350px;
 }
 
-
-/* Bottom container, in the left box */
-.bottom-box {
-  display: block;
-  position : absolute;
-  bottom : 0;
-  width: 100%;
-  height : 300px;
-}
-
-.bottom-container {
-  position: inherit;
-  width: 105%;
-  /* border-right: dashed 1px gray; */
-  height: 350px;
-}
 
 .face-box {
     float: left;
@@ -86,54 +68,25 @@ ul {
     float: left;
     position: absolute;
     height: 280px;
-    width: 65%;
     border-left: none;
     margin-left: 15px;
     padding: 10px;
 }
 
-/* Right column boxes */
-.right-container {
-  margin-left: 50px;
-}
-
-.right-main-box {
-  float: left;
-  position: absolute;
-  margin: 0;
-  padding: 0;
-  width: 350px;
-  height: 100%;
-  margin-left: 75%;
-  min-height: 700px;
-  overflow: auto;
-}
 
 .day-night {
-    display: block;
-    width: 200px;
-    margin-left: auto;
-    margin-right: 50px;
-    padding: 10px;
-    margin-top: 30px;
-    max-width: 100%;
+  height: 100px;
+  padding: 10px;
 }
 
-.role-box {
+.player-role {
     display: block;
-    margin-right: auto;
-    width: 250px;
-    max-width: 100%;
     padding: 10px;
-    margin-top: 40px;
-    height: 150px;
+    height: 200px;
 }
 
 .players-box {
     display: block;
-    position: absolute;
-    bottom: 0;
-    width: 250px;
     max-width: 100%;
     padding: 10px;
     margin-top: 50px;
@@ -175,10 +128,9 @@ ul {
   padding: 20px 50px 20px 20px;
 }
 
+
 .modal input {
   display: block;
-  font-size: 1.2em;
-  margin: 10px auto;
 }
 
 .death-container .death-overlay {
@@ -202,4 +154,86 @@ ul {
 
 .death-container .death-notice .reason {
   font-size: 0.4em;
+}
+
+
+/* Grids */
+.grid {
+  display: block;
+  position: relative;
+  min-height: 900px;
+  height: 97% !important;
+  margin: 30px;
+  margin-bottom: 0px;
+  box-sizing: border-box;
+  min-width: 1024px;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin: 10px;
+}
+
+.row > .row {
+  margin: 0; /* nested rows dont have margins*/
+}
+
+
+/* General box styles */
+.box {
+  padding: 10px;
+  border-radius: 2px;
+  display: inline-block;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.19), 0 1px 2px rgba(0,0,0,0.23);
+  border: solid 1px rgba(128, 128, 128, 0.18);
+  background-color: #FFF;
+  width: 100%;
+  background-clip: padding-box;
+}
+
+.box header {
+    font-size: 13pt;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.box div {
+   font-size: 11pt;
+}
+.box-1-6 {
+  flex: 0 1 16.6666%;
+}
+.box-1-5 {
+  flex: 0 1 20%;
+}
+.box-1-4 {
+  flex: 0 1 25%;
+}
+.box-1-3 {
+  flex: 0 1 33.3333%;
+}
+.box-2-5 {
+  flex: 0 1 40%;
+}
+.box-1-2, .box-2-4 {
+  flex: 0 1 50%;
+}
+.box-3-5 {
+  flex: 0 1 60%;
+}
+.box-2-3 {
+  flex: 0 1 66.6666%;
+}
+.box-3-4 {
+  flex: 0 1 75%;
+}
+.box-4-5 {
+  flex: 0 1 80%;
+}
+.box-1-1, .box-2-2, .box-3-3, .box-4-4, .box-5-5, .box-6-6 {
+  flex: 0 1 100%;
 }

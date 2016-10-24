@@ -1,0 +1,143 @@
+<html>
+<head><title>Awesome Game by Matt²</title>
+<link rel="stylesheet" type="text/css" href="style.css" />
+<body>
+
+<pre id="events"></pre>
+
+<div class='death-container' style='display: none;'>
+<div class='death-overlay'></div>
+   <div class='death-notice'>
+    You have died
+    <br /><span class="reason"></span>
+    </div>
+  </div>
+<!-- Model code -->
+<div class="modal" id="modal" style="display: none;">
+  <div class="modal-guts">
+    <h1 id="action-title">Awesome Action!</h1>
+    <p id="action-text">
+      How now brown cow?
+    </p>
+    <input type="text" name="action" id="action"/>
+  </div>
+</div>
+<!-- End modal code -->
+
+<div class="grid">
+  <div class="row" style="margin-top: auto">
+    <div class="box box-1-5 list-of-deaths">
+      <header>Dead Players</header>
+      <div>
+        <ul>
+          <li>PsyKzz (Murdered by werewolf)</li>
+          <li>PsyKzz (Hung by town)</li>
+          <li>PsyKzz (Suicide)</li>
+          <li>PsyKzz (Murdered by werewolf)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="box-1-6 row">
+      <div class="box day-night">
+       <span id='night'><img src="img/moon.png"></span>
+        <span id='day'><img src="img/sun.png"></span>
+      </div>
+
+      <div class="box player-role">
+        <header>Role</header>
+        <div>
+          Your role is <span id="role">Unassigned</span>.
+        </div>
+      </div>
+    </div>
+  </div>
+  <br />
+  <div class="row" style="position: absolute; bottom: 50px;">
+<!--     <div class="box box-1-5 ">
+      <pre>
+        o
+       \|/
+        /\
+      </pre>
+    </div> -->
+
+    <div class="box box-4-5 ">
+
+      <div id='chat-box'></div>
+      <input type="text" class="chat-input" />
+      <input type="submit" class="chat-send" />
+
+    </div>
+
+    <div class="box box-1-6 ">
+      <div class="box-head">Players</div>
+      <div class="box-body">
+        <ul></ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="/scripts/UIHelper.js"></script>
+<script>
+"use strict";
+/* global io, $ */
+
+var currentActionId;
+var gameStarted = false;
+var UI = new UIHelper();
+var socket = io();
+
+UI.showModal({title: "What's your name", content: "Pick a name to be known as in town"})
+
+$("#action").on('keyup', function(e) {
+  if(e.keyCode === 13 && this.value !== "") {
+    UI.hideModal();
+
+    if (gameStarted)
+      socket.emit(currentActionId, this.value);
+    else
+      socket.emit('join', this.value);
+  }
+});
+
+socket.on("game event", function(msg) {
+  UI.debug(msg);
+
+  // Did someone die
+  if(msg.type === 'killed') {
+    UI.addDeaths(msg.killed);
+  }
+
+ // Did you die
+  if(msg.type === 'death') {
+    UI.playerDeath();
+  }
+
+  // update role information
+  if(msg.type === "start" && msg.role !== undefined) {
+    UI.updateRole(msg.role);
+    UI.updatePlayers(msg.players);
+    UI.updateUI('night');
+    gameStarted = true;
+  }
+
+  // update time
+  if(msg.type === 'timechange') {
+    UI.updateUI(msg.time);
+  }
+
+  if(msg.type === "rfa") {
+    currentActionId = msg.identifier;
+    UI.showModal({title: msg.title, content: msg.description});
+
+  }
+});
+</script>
+
+</body>
+</html>
