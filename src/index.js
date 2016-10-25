@@ -1,8 +1,8 @@
 "use strict";
 var opbeat = require('opbeat').start({
-  appId: '321d2eb48b',
-  organizationId: '074620ff86eb42c4a4236dfa64824b12',
-  secretToken: '3788a72215c2de6dea7da2447870533b09adf233'
+  appId: '',
+  organizationId: '',
+  secretToken: ''
 })
 var express = require("express");
 var app = express();
