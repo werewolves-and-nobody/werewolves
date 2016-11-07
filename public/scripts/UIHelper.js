@@ -1,8 +1,16 @@
-/* global $ module window */
+/* global $ module window moment */
 (function() {
   'use strict';
   var UIHelper = function UIHelper() {
 
+  };
+
+  UIHelper.prototype.addChatMessage = function addChatMessage(author, message) {
+    $(`<li class="chat">
+          [<span class='timestamp'>${moment().format('hh:mm')}</span>]
+          (<span class='author'>${author}</span>):
+          <span class='message'>${message}</span>
+        </li>`).appendTo('#chat-box');
   };
 
   UIHelper.prototype.updateRole = function updateRole(role) {
@@ -11,6 +19,7 @@
 
   UIHelper.prototype.updatePlayers = function updatePlayers(players) {
     // Show all the players names.
+    $('.players-box ul').empty();
     players.forEach(function(p) {
       $('<li></li>').text(p).appendTo('.players-box ul');
     });

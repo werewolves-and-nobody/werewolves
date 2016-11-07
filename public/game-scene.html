@@ -5,13 +5,16 @@
 
 <pre id="events"></pre>
 
+<!-- Death container -->
 <div class='death-container' style='display: none;'>
-<div class='death-overlay'></div>
-   <div class='death-notice'>
+  <div class='death-overlay'></div>
+  <div class='death-notice'>
     You have died
     <br /><span class="reason"></span>
-    </div>
   </div>
+</div>
+<!-- End Death container -->
+
 <!-- Model code -->
 <div class="modal" id="modal" style="display: none;">
   <div class="modal-guts">
@@ -47,13 +50,13 @@
       <div class="box player-role">
         <header>Role</header>
         <div>
-          Your role is <span id="role">Unassigned</span>.
+          Your role is <span id="role">unassigned</span>.
         </div>
       </div>
     </div>
   </div>
   <br />
-  <div class="row" style="position: absolute; bottom: 50px;">
+  <div class="row" style="position: absolute; bottom: 30px;">
 <!--     <div class="box box-1-5 ">
       <pre>
         o
@@ -63,26 +66,30 @@
     </div> -->
 
     <div class="box box-4-5 ">
-
+      <header>Chat</header>
       <div id='chat-box'></div>
-      <input type="text" class="chat-input" />
-      <input type="submit" class="chat-send" />
+      <input type="text" id="chat-input" />
+      <input type="submit" id="chat-send" />
 
     </div>
 
     <div class="box box-1-6 ">
-      <div class="box-head">Players</div>
-      <div class="box-body">
-        <ul></ul>
+      <header>Players</header>
+      <div>
+        <ul>
+          <li>Game is still being created</li>
+        </ul>
       </div>
     </div>
 
   </div>
 </div>
 
-<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.2/moment.min.js"></script>
 <script src="/scripts/UIHelper.js"></script>
+<script src="/scripts/Player.js"></script>
 <script>
 "use strict";
 /* global io, $ */
@@ -91,6 +98,8 @@ var currentActionId;
 var gameStarted = false;
 var UI = new UIHelper();
 var socket = io();
+
+var player = new Player();
 
 UI.showModal({title: "What's your name", content: "Pick a name to be known as in town"})
 
@@ -102,7 +111,21 @@ $("#action").on('keyup', function(e) {
       socket.emit(currentActionId, this.value);
     else
       socket.emit('join', this.value);
+      player.setName(this.value);
   }
+});
+
+
+var $chat = $('#chat-box');
+var $chatSend = $('#chat-send');
+var $chatInput = $('#chat-input');
+$chatSend.on('click', function() {
+  if($chatInput.val()) {
+    UI.addChatMessage(player.name, $chatInput.val())
+  }
+})
+socket.on("chat event", function(msg) {
+  $('<p></p>').text(msg).appendTo($chat);
 });
 
 socket.on("game event", function(msg) {
